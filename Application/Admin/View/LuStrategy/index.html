@@ -1,0 +1,84 @@
+<extend name="Public/base"/>
+
+<block name="body">
+	<!-- 标题 -->
+	<div class="main-title">
+		<h2>
+		</h2>
+	</div>
+
+	<!-- 按钮工具栏 -->
+	<div class="cf">
+		<div class="fl">
+			<div class="btn-group">
+				<a class="btn" href="{:U('add')}">新 增</a>
+			</div>
+            
+		</div>
+	</div>
+
+	<!-- 数据表格 -->
+    <div class="data-table">
+		<table>
+            <!-- 表头 -->
+            <thead>
+                <tr>
+                    <th class="row-selected">
+						<input class="checkbox check-all" type="checkbox">
+					</th>
+					<th>ID</th>
+					<th>名字</th>
+					<th>描述</th>
+					<th>股票数</th>
+					<th>类型</th>
+					<th>运行状态</th>
+					<th>发布状态</th>
+					<th>操作</th>
+                </tr>
+            </thead>
+
+            <!-- 列表 -->
+            <tbody>
+                <volist name="list" id="data">
+                    <tr>
+                        <td><input class="ids row-selected" type="checkbox" name="id[]" value="{$data.id}"></td>
+						<td>{$data.id}</td>
+						<td><a href="{:U('edit?id='.$data['id'])}">{$data.title}</a></td>
+						<td>{$data.attr}</td>
+						<td>{$data.stock_num}</td>
+						<td>{$data.type_name}</td>
+						<td>{$data.run_status_name}</td>
+						<td>{$data.status_name}</td>
+						<td>
+							<a class="run_class" data-id="{$data['id']}" data-url="{:U('run?id='.$data['id'])}" title="运行" href='#'>运行</a>
+							<a title="编辑" href="{:U('edit?id='.$data['id'])}">编辑</a>
+							<a class="confirm ajax-get" title="删除" href="{:U('del?id='.$data['id'])}">删除</a>
+						</td>
+                    </tr>
+                </volist>
+            </tbody>
+        </table>
+	</div>
+	<!-- 分页 -->
+    <div class="page">
+        {$_page}
+    </div>
+</div>
+
+</block>
+<block name="script">
+<script type="text/javascript">
+	$(function(){
+		$(".run_class").each(function(){
+			$(this).click(function(e){
+				var obj=$(e.target);
+				var id=obj.data("id");
+				var url=obj.data("url");
+				$.get(url,{},function(data){
+					alert(data);
+				});
+			});
+		});
+	});
+</script>
+</block>

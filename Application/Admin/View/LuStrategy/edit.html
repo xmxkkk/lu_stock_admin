@@ -1,0 +1,433 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<script type="text/javascript" src="__STATIC__/uploadify/jquery.uploadify.min.js"></script>
+	<div class="main-title cf">
+		<h2>
+			编辑策略
+		</h2>
+	</div>
+	<!-- 标签页导航 -->
+<div class="tab-wrap">
+	<div class="tab-content">
+	<!-- 表单 -->
+	<form id="form" action="{:U('update')}" method="post" class="form-horizontal">
+		<input type="hidden" name="id" value="{$data.id}">
+		<input type="hidden" name="filters" value="">
+		<!-- 基础文档模型 -->
+        <div id="tab">
+            <div class="form-item">
+				<label class="item-label">名字<span class="check-tips"></span></label>
+				<div class="controls">
+					<input type="text" class="text input-large" name='title' value="{$data['title']|default=''}"/>
+				</div>
+			</div>
+			<div class="form-item">
+				<label class="item-label">描述<span class="check-tips"></span></label>
+				<div class="controls">
+					<textarea class="text input-large" style="height:70px;" name="attr">{$data['attr']|default=''}</textarea>
+				</div>
+			</div>
+			<div class="form-item">
+				<div class="controls">
+					<input type="file" id="upload_picture_img">
+					<input type="hidden" name="img" id="cover_id_img" value="{$data['img']}"/>
+					<div class="upload-img-box">
+					<notempty name="data['img']">
+						<div class="upload-pre-item"><img src="__ROOT__{$data['img']|get_cover='path'}"/></div>
+					</notempty>
+					</div>
+				</div>
+				<script type="text/javascript">
+					//上传图片
+					/* 初始化上传插件 */
+					$("#upload_picture_img").uploadify({
+						"height"          : 30,
+						"swf"             : "__STATIC__/uploadify/uploadify.swf",
+						"fileObjName"     : "download",
+						"buttonText"      : "上传图片",
+						"uploader"        : "{:U('File/uploadPicture',array('session_id'=>session_id()))}",
+						"width"           : 120,
+						'removeTimeout'	  : 1,
+						'fileTypeExts'	  : '*.jpg; *.png; *.gif;',
+						"onUploadSuccess" : uploadPicture{$field.name},
+						'onFallback' : function() {
+							alert('未检测到兼容版本的Flash.');
+						}
+					});
+					function uploadPicture{$field.name}(file, data){
+						var data = $.parseJSON(data);
+						var src = '';
+						if(data.status){
+							$("#cover_id_img").val(data.id);
+							src = data.url || '__ROOT__' + data.path
+							$("#cover_id_img").parent().find('.upload-img-box').html(
+							    '<div class="upload-pre-item"><img src="' + src + '"/></div>'
+							);
+						} else {
+							updateAlert(data.info);
+							setTimeout(function(){
+							    $('#top-alert').find('button').click();
+							    $(that).removeClass('disabled').prop('disabled',false);
+							},1500);
+						}
+					}
+				</script>
+			</div>
+			<div class="form-item">
+				<label class="item-label">类型<span class="check-tips"></span></label>
+				<div class="controls">
+				<select name="type">
+	                <volist name="types" id="vo">
+	                    <option value="{$key}" <eq name="data['type']" value="$key">selected</eq>>{$vo}</option>
+	                </volist>
+	            </select>
+	        	</div>
+			</div>
+			<div class="form-item">
+				<label class="item-label">状态<span class="check-tips"></span></label>
+				<div class="controls">
+				<select name="status">
+	                <volist name="statuses" id="vo">
+	                    <option value="{$key}" <eq name="data['status']" value="$key">selected</eq>>{$vo}</option>
+	                </volist>
+	            </select>
+	        	</div>
+			</div>
+			<div class="form-item">
+				<label class="item-label">过滤条件<span class="check-tips"></span><span class="btn" id="add_filter">增加过滤器</span></label>
+				<div class="controls" id="filters">
+					<volist name="data['filters']" id="vo">
+						<div class="filter" style="line-height:35px;clear:both;">
+							<div style="float:left;width:25px;">
+								<input type="checkbox" name="join" checked>
+							</div>
+							<div style="float:left;width:200px;">
+								<select class="stock_filter_class">
+								<volist name="stockFilters" id="filter">
+								<option value="{$filter.name}"  data-type="{$filter.type}" <eq name="vo['filter']" value="$filter.name">selected</eq>>{$filter.title}</option>
+								</volist>
+								</select>
+							</div>
+							<div class="condition_class" style="float:left;min-width:160px;">
+								<eq name="vo['type']" value="num">
+								<div class="type type_num">
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:150px;"/>
+								</div>
+								</eq>
+								<eq name="vo['type']" value="str">
+								<div class="type type_str">
+									<input type="radio" name="bool" value="true" <eq name="vo['bool']" value="true"> checked</eq>>包含
+									<input type="radio" name="bool" value="false" <eq name="vo['bool']" value="false"> checked</eq>>不包含 
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:150px;"/>
+								</div>
+								</eq>
+								<eq name="vo['type']" value="bool">
+								<div class="type type_bool">
+									&nbsp;
+								</div>
+								</eq>
+								<eq name="vo['type']" value="num_menu">
+								<div class="type type_num_menu">
+									<select name="menu">
+										<option>筹资现金</option>
+										<option>经营现金</option>
+										<option>投资现金</option>
+									</select>
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:150px;"/>
+								</div>
+								</eq>
+								<eq name="vo['type']" value="num_day1">
+								<div class="type type_num_day1">
+									近<input type="text" name="day1" value="{$vo['day1']}" class="text" style="width:50px;"/>天，
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:150px;"/>
+								</div>
+								</eq>
+								<eq name="vo['type']" value="num_day2">
+								<div class="type type_num_day2">
+									从<input type="text" name="day1" value="{$vo['day1']}" class="text" style="width:50px;"/>天，
+									到<input type="text" name="day2" value="{$vo['day2']}" class="text" style="width:50px;"/>天，
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:150px;"/>
+								</div>
+								</eq>
+							</div>
+							<div style="color:#c2c2c2;">&nbsp;&nbsp;&nbsp;{$vo['attr']}</div>
+						</div>
+	           		</volist>
+	        	</div>
+			</div>
+			
+        </div>
+
+		<div class="form-item cf">
+			<button class="btn submit-btn ajax-post hidden" id="submit" type="submit" target-form="form-horizontal">确 定</button>
+			<a class="btn btn-return" href="{$Think.cookie.__forward__}">返 回</a>
+			
+			<input type="hidden" name="id" value="{$data.id|default=''}"/>
+		</div>
+	</form>
+	</div>
+</div>
+<div id="filter_html"  style="display:none;">
+	<div class="filter" style="line-height:35px;clear:both;">
+		<div style="float:left;width:25px;">
+			<input type="checkbox" name="join" checked>
+		</div>
+		<div style="float:left;width:200px;">
+			<select class="stock_filter_class">
+			<volist name="stockFilters" id="filter">
+			<option value="{$filter.name}" data-type="{$filter.type}">{$filter.title}</option>
+			</volist>
+			</select>
+		</div>
+		<div class="condition_class" style="float:left;min-width:160px;">
+			<div class="type type_num">
+				<input type="text" name="condition" value="" class="text" style="width:150px;"/>
+			</div>
+			<div class="type type_str">
+				<input type="radio" name="bool" value="">包含
+				<input type="radio" name="bool" value="">不包含 
+				<input type="text" name="condition" value="" class="text" style="width:150px;"/>
+			</div>
+			<div class="type type_bool">
+				&nbsp;
+			</div>
+			<div class="type type_num_menu">
+				<select name="menu">
+					<option>筹资现金</option>
+					<option>经营现金</option>
+					<option>投资现金</option>
+				</select>
+				<input type="text" name="condition" value="" class="text" style="width:150px;"/>
+			</div>
+			<div class="type type_num_day1">
+				近<input type="text" name="day1" value="" class="text" style="width:50px;"/>天，
+				<input type="text" name="condition" value="" class="text" style="width:150px;"/>
+			</div>
+			<div class="type type_num_day2">
+				从过去<input type="text" name="day1" value="" class="text" style="width:50px;"/>天，
+				到未来<input type="text" name="day2" value="" class="text" style="width:50px;"/>天，
+				<input type="text" name="condition" value="" class="text" style="width:150px;"/>
+			</div>
+		</div>
+		<div style="color:#c2c2c2;">&nbsp;&nbsp;&nbsp;{$vo['attr']}</div>
+	</div>
+</div>
+</block>
+
+<block name="script">
+<link href="__STATIC__/datetimepicker/css/datetimepicker.css" rel="stylesheet" type="text/css">
+<php>if(C('COLOR_STYLE')=='blue_color') echo '<link href="__STATIC__/datetimepicker/css/datetimepicker_blue.css" rel="stylesheet" type="text/css">';</php>
+<link href="__STATIC__/datetimepicker/css/dropdown.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="__STATIC__/datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="__STATIC__/datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+<script type="text/javascript">
+
+
+
+$(function(){
+
+	var condition=function(type){
+		var obj=$("#filter_html .condition_class .type_"+type);
+		return obj.clone();
+	}
+
+	var getType=function(obj){
+		var val=obj.val();
+		var arr=obj.children();
+		for(var i=0;i<arr.length;i++){
+			var v=$(arr.get(i)).val();
+			if(v==val){
+				return $(arr.get(i)).data('type');
+			}
+		}
+	}
+
+	var convert=function(){
+		var dataArray=new Array();
+		$("#filters .filter").each(function(){
+			var join=$(this).find("input[name=join]").is(':checked')==true;
+			if(join){
+				var data={};
+
+				var stock_filter_class=$(this).find(".stock_filter_class").val();
+				data.filter=stock_filter_class;
+
+				var typeDiv=$(this).find(".type");
+
+				if(typeDiv.hasClass("type_num")){
+					var condition=typeDiv.find("input[name=condition]").val();
+					data.condition=condition;
+				}else if(typeDiv.hasClass("type_str")){
+					var bool=typeDiv.find("input[name=bool]:checked").val();
+					var condition=typeDiv.find("input[name=condition]").val();
+					if(bool=="true"){
+						data.condition="IN"+condition;
+					}else{
+						data.condition="!IN"+condition;
+					}
+				}else if(typeDiv.hasClass("type_bool")){
+
+				}else if(typeDiv.hasClass("type_num_menu")){
+					var menu=typeDiv.find("select[name=menu]").val();
+					var condition=typeDiv.find("input[name=condition]").val();
+					data.condition=menu+","+condition;
+				}else if(typeDiv.hasClass("type_num_day1")){
+					var day1=typeDiv.find("input[name=day1]").val();
+					var condition=typeDiv.find("input[name=condition]").val();
+					data.condition=day1+","+condition;
+				}else if(typeDiv.hasClass("type_num_day2")){
+					var day1=typeDiv.find("input[name=day1]").val();
+					var day2=typeDiv.find("input[name=day2]").val();
+					var condition=typeDiv.find("input[name=condition]").val();
+					data.condition=day1+","+day2+","+condition;
+				}
+				dataArray[dataArray.length]=data;
+			}
+
+		});
+
+		console.log(dataArray);
+		$("input[name=filters]").val(JSON.stringify(dataArray));
+	};
+//	convert();
+
+	var bindConvert=function(){
+		$("#filters input").each(function(){
+			$(this).unbind('change');
+			$(this).unbind('focusout');
+			$(this).change(function(){
+				convert();
+			});
+			$(this).focusout(function(){
+				convert();
+			});
+		});
+
+		$("#filters input[type=checkbox]").each(function(){
+			$(this).unbind('change');
+			$(this).unbind('focusout');
+			$(this).change(function(){
+				convert();
+			});
+			$(this).focusout(function(){
+				convert();
+			});
+		});
+		
+		$("#filters select").each(function(){
+			$(this).unbind('change');
+			$(this).unbind('focusout');
+			$(this).change(function(){
+				convert();
+			});
+			$(this).focusout(function(){
+				convert();
+			});
+		});
+	};
+	bindConvert();
+
+	var onaction=function (){
+		$(".stock_filter_class").each(function(){
+			$(this).unbind('change');
+			$(this).change(function(e){
+				var type=getType($(e.target));
+
+				var obj=$(this).parent();
+				var condition_class=obj.next(".condition_class");
+				condition_class.html(condition(type));
+
+				bindConvert();
+			});
+		});
+		convert();
+		bindConvert();
+	};
+	onaction();
+
+	
+	
+	$("#add_filter").click(function(){
+		var type=getType($('#filter_html .stock_filter_class'));
+		$("#filters").append($("#filter_html").html());
+		var x=$("#filters").children().last();
+		x.children(".condition_class").html(condition(type));
+
+		onaction();
+	});
+
+	
+	$('#submit').click(function(){
+		convert();
+		$('#form').submit();
+	});
+
+	
+    $('.time').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true
+    });
+    showTab();
+
+	<if condition="C('OPEN_DRAFTBOX') and (ACTION_NAME eq 'add' or $data['status'] eq 3)">
+	//保存草稿
+	var interval;
+	$('#autoSave').click(function(){
+        var target_form = $(this).attr('target-form');
+        var target = $(this).attr('url')
+        var form = $('.'+target_form);
+        var query = form.serialize();
+        var that = this;
+
+        $(that).addClass('disabled').attr('autocomplete','off').prop('disabled',true);
+        $.post(target,query).success(function(data){
+            if (data.status==1) {
+                updateAlert(data.info ,'alert-success');
+                $('input[name=id]').val(data.data.id);
+            }else{
+                updateAlert(data.info);
+            }
+            setTimeout(function(){
+                $('#top-alert').find('button').click();
+                $(that).removeClass('disabled').prop('disabled',false);
+            },1500);
+        })
+
+        //重新开始定时器
+        clearInterval(interval);
+        autoSaveDraft();
+        return false;
+    });
+
+	//Ctrl+S保存草稿
+	$('body').keydown(function(e){
+		if(e.ctrlKey && e.which == 83){
+			$('#autoSave').click();
+			return false;
+		}
+	});
+
+	//每隔一段时间保存草稿
+	function autoSaveDraft(){
+		interval = setInterval(function(){
+			//只有基础信息填写了，才会触发
+			var title = $('input[name=title]').val();
+			var name = $('input[name=name]').val();
+			var des = $('textarea[name=description]').val();
+			if(title != '' || name != '' || des != ''){
+				$('#autoSave').click();
+			}
+		}, 1000*parseInt({:C('DRAFT_AOTOSAVE_INTERVAL')}));
+	}
+	autoSaveDraft();
+
+	</if>
+
+	
+
+});
+</script>
+</block>
