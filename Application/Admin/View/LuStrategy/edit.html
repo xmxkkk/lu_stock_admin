@@ -36,7 +36,7 @@
 					<input type="hidden" name="img" id="cover_id_img" value="{$data['img']}"/>
 					<div class="upload-img-box">
 					<notempty name="data['img']">
-						<div class="upload-pre-item"><img src="__ROOT__{$data['img']|get_cover='path'}"/></div>
+						<div class="upload-pre-item" style="width:320px;height:182px;max-height:182px;"><img src="__ROOT__{$data['img']|get_cover='path'}" width="320px" height="182px"/></div>
 					</notempty>
 					</div>
 				</div>
@@ -64,7 +64,7 @@
 							$("#cover_id_img").val(data.id);
 							src = data.url || '__ROOT__' + data.path
 							$("#cover_id_img").parent().find('.upload-img-box').html(
-							    '<div class="upload-pre-item"><img src="' + src + '"/></div>'
+							    '<div class="upload-pre-item" style="width:320px;height:182px;max-height:182px;"><img src="' + src + '" width="320px" height="182px"/></div>'
 							);
 						} else {
 							updateAlert(data.info);

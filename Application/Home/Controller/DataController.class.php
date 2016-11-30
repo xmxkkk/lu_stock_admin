@@ -19,12 +19,11 @@ class DataController extends HomeController {
 	public function core(){
 		$id=intval(I('get.id'));
 
-
 		$result=null;
 		if($id==1){
 			$luStrategys=M("LuStrategy")->where(array("status"=>1))->select();
 			for($i=0;$i<count($luStrategys);$i++){
-				$id=$luStrategys[$i]['id'];
+				$id=$luStrategys[$i]['img'];
 				$picture=M("Picture")->where(array("id"=>$id))->find();
 				$luStrategys[$i]['img']=$picture['path'];
 			}
