@@ -32,8 +32,11 @@ class LuStrategyController extends AdminController {
         $data['run_status_name']=$this->run_statuses[$data['run_status']];
 
         $data['stock_num']=M('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->count();
-        $data['stocks']=M('LuStrategyStock')->where(array('id'=>$data['id']))->select();
+        $data['stocks']=M('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->select();//print_r($data['stocks']);
         $data['filters']=M('LuStrategyFilter')->where(array('id'=>$data['id']))->select();
+        $data['changeRate']=M("LuStrategyChangeRate")->where(array('id'=>$data['id']))->order("dt desc")->find();
+//        print_r($data['changeRate']);
+
         for($i=0;$i<count($data['filters']);$i++){
             $stockFilter=M('LuStrategyStockfilter')->where(array('name'=>$data['filters'][$i]['filter']))->find();
             $data['filters'][$i]['type']=$stockFilter['type'];
@@ -47,10 +50,10 @@ class LuStrategyController extends AdminController {
             }else if($data['filters'][$i]['type']=='str'){
                 if(start_with($data['filters'][$i]['condition'],'!IN')){
                     $data['filters'][$i]['bool']="false";
-                    $data['filters'][$i]['condition']=substr($data['filters'][$i]['condition'], 3);
+                    $data['filters'][$i]['condition']=mb_substr($data['filters'][$i]['condition'], 3);
                 }else if(start_with($data['filters'][$i]['condition'],'IN')){
                     $data['filters'][$i]['bool']="true";
-                    $data['filters'][$i]['condition']=substr($data['filters'][$i]['condition'], 4);
+                    $data['filters'][$i]['condition']=mb_substr($data['filters'][$i]['condition'], 2);
                 }
             }else if($data['filters'][$i]['type']=='num_day1'){
                 $arr=explode(",",$data['filters'][$i]['condition']);
@@ -62,8 +65,6 @@ class LuStrategyController extends AdminController {
                 $data['filters'][$i]['day2']=$arr[1];
                 $data['filters'][$i]['condition']=$arr[2];
             }
-
-
         }
 
     }
@@ -93,6 +94,10 @@ class LuStrategyController extends AdminController {
         $this->assign('data',$data);
 
         $this->display();
+    }
+    public function add($id=0){
+
+        $this->display("edit");
     }
 
     public function update(){
@@ -133,8 +138,40 @@ class LuStrategyController extends AdminController {
 
         $this->success("更新成功");
     }
-    public function run(){
-        $id=I('get.id');
-        echo $id;
+    public function run_filter(){
+        $id=I('post.id');
+
+        if($id==""){
+            $id=-1;
+            $filters=I('post.filters');
+        }
+
+        $filters=json_encode(json_decode($filters));
+
+        $md5=md5(rand(0,2000000000).":".rand(0,2000000000).":".rand(0,2000000000));
+
+        $data=new \stdClass();
+        $data->id=$md5;
+        $data->filters=base64_encode($filters);
+
+        exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"");
+
+        $stocks=M('LuStrategyStock')->where(array("id"=>$id,"status"=>1))->select();
+
+        $changeRate=M("LuStrategyChangeRate")->where(array("id"=>$id))->find();
+
+        $result=new \stdClass();
+        $result->md5=$md5;
+        $result->stocks=$stocks;
+        $result->changeRate=$changeRate;
+
+        $this->ajaxReturn($result);
+    }
+    public function stocks(){
+        $id=I('post.id');
+        $id=-1;
+        $stocks=M('LuStrategyStock')->where(array("id"=>$id))->select();
+
+        $this->ajaxReturn($stocks);
     }
 }

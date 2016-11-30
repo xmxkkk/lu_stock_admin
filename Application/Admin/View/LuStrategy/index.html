@@ -40,17 +40,17 @@
             <!-- 列表 -->
             <tbody>
                 <volist name="list" id="data">
-                    <tr>
+                    <tr class="strategy_row">
                         <td><input class="ids row-selected" type="checkbox" name="id[]" value="{$data.id}"></td>
 						<td>{$data.id}</td>
 						<td><a href="{:U('edit?id='.$data['id'])}">{$data.title}</a></td>
 						<td>{$data.attr}</td>
-						<td>{$data.stock_num}</td>
+						<td><font class="stocks_num">{$data.stock_num}</font></td>
 						<td>{$data.type_name}</td>
-						<td>{$data.run_status_name}</td>
+						<td class="run_status">{$data.run_status_name}</td>
 						<td>{$data.status_name}</td>
 						<td>
-							<a class="run_class" data-id="{$data['id']}" data-url="{:U('run?id='.$data['id'])}" title="运行" href='#'>运行</a>
+							<a class="run_class" data-id="{$data['id']}" data-url="{:U('run_filter?id='.$data['id'])}" title="运行" href='#'>运行</a>
 							<a title="编辑" href="{:U('edit?id='.$data['id'])}">编辑</a>
 							<a class="confirm ajax-get" title="删除" href="{:U('del?id='.$data['id'])}">删除</a>
 						</td>
@@ -67,15 +67,20 @@
 
 </block>
 <block name="script">
+<script type="text/javascript" src="__STATIC__/jquery.blockUI.js"></script>
 <script type="text/javascript">
 	$(function(){
 		$(".run_class").each(function(){
 			$(this).click(function(e){
+				$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 				var obj=$(e.target);
 				var id=obj.data("id");
 				var url=obj.data("url");
-				$.get(url,{},function(data){
-					alert(data);
+				$.post(url,{id:id},function(data){
+					console.log(data);
+					obj.parent().parent().find(".stocks_num").text(data.stocks.length);
+					obj.parent().parent().find(".run_status").text("已运行");
+					$.unblockUI();
 				});
 			});
 		});
