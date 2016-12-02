@@ -1,0 +1,69 @@
+<extend name="Public/base"/>
+
+<block name="body">
+	<!-- 标题 -->
+	<div class="main-title">
+		<h2>
+		</h2>
+	</div>
+
+	<!-- 按钮工具栏 -->
+	<div class="cf">
+		<div class="fl">
+		</div>
+	</div>
+
+	<!-- 数据表格 -->
+    <div class="data-table">
+		<table style="width:30%;float:left;margin-right:30px;">
+			<thead>
+				<tr>
+					<th>一级分类</th>
+				</tr>
+			</thead>
+			<tbody>
+				<volist name="level1" id="vo">
+				<tr>
+					<td>{$vo['level1']}</td>
+				</tr>
+				</volist>
+			</tbody>
+		</table>
+		<table style="width:30%;float:left;margin-right:30px;">
+			<thead>
+				<tr>
+					<th>二级分类</th>
+				</tr>
+			</thead>
+			<tbody>
+				<volist name="level2" id="vo">
+				<tr>
+					<td>{$vo['level2']}</td>
+				</tr>
+				</volist>
+			</tbody>
+		</table>
+		<table style="width:30%;float:left;margin-right:30px;">
+			<thead>
+				<tr>
+					<th>三级分类</th>
+				</tr>
+			</thead>
+			<tbody>
+				<volist name="level3" id="vo">
+				<tr>
+					<td>{$vo['level3']}</td>
+				</tr>
+				</volist>
+			</tbody>
+		</table>
+	</div>
+	<!-- 分页 -->
+    <div class="page">
+        {$_page}
+    </div>
+</div>
+
+</block>
+<block name="script">
+</block>

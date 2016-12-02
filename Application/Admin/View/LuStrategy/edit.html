@@ -10,13 +10,14 @@
 	<!-- 标签页导航 -->
 <div class="tab-wrap">
 	<div class="tab-content">
-	
+	<input type="hidden" name="action" value="{$aciton}">
+	<input type="hidden" name="update_url" value="{:U('update')}">
 	<input type="hidden" name="run_filter_url" value="{:U('run_filter')}">
 	<input type="hidden" name="stocks_url" value="{:U('stocks')}">
 	<input type="hidden" name="filterMenus" value='{$filterMenus|json_encode}'>
-		
+	<input type="hidden" name="stockFilters" value='{$stockFilters|json_encode}'>
 	<!-- 表单 -->
-	<form id="form" action="" method="post" class="form-horizontal">
+	<form id="form" action="__ACTION__" method="post" class="form-horizontal">
 		<input type="hidden" name="id" value="{$data.id}">
 		<input type="hidden" name="filters" value="">
 		<!-- 基础文档模型 -->
@@ -105,7 +106,6 @@
 			<div class="form-item">
 				<label class="item-label">过滤条件<span class="check-tips"></span>
 					<span class="btn" id="add_filter">增加过滤器</span>
-					<span class="btn" id="run_filter">运行过滤器</span>
 					<span class="btn" id="test_filter">测试过滤器</span>
 				</label>
 				<div class="controls" id="filters">
@@ -127,6 +127,11 @@
 									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:100px;"/>
 								</div>
 								</eq>
+								<eq name="vo['type']" value="text">
+								<div class="type type_text">
+									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:100px;"/>
+								</div>
+								</eq>
 								<eq name="vo['type']" value="str">
 								<div class="type type_str">
 									<input type="radio" name="bool{$k}" value="true" <eq name="vo['bool']" value="true"> checked</eq>>包含
@@ -143,7 +148,7 @@
 								<div class="type type_num_menu">
 									<select name="menu">
 										<volist name="vo['menus']" id='vomenu'>
-										<option value="{$vomenu['menu']}" <eq name="vo['menu']" value="$vomenu.menu">selected</eq>>{$vomenu['menu']}</option>
+										<option value="{$vomenu['value']}" <eq name="vo['menu']" value="$vomenu.value">selected</eq>>{$vomenu['menu']}</option>
 										</volist>
 									</select>
 									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:70px;"/>
@@ -163,10 +168,10 @@
 								</div>
 								</eq>
 							</div>
-							<div class="error_message" style="float:left;display:none;">
+							<div class="error_message" style="display:none;">
 								<div style="color:red;">*</div>
 							</div>
-							<div style="color:#c2c2c2;">&nbsp;&nbsp;&nbsp;{$vo['attr']}</div>
+							<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:10px;">{$vo['attr']}</div>
 						</div>
 	           		</volist>
 	        	</div>
@@ -254,9 +259,10 @@
         </div>
 
 		<div class="form-item cf">
-			<button class="btn submit-btn ajax-post hidden" id="submit" type="submit" target-form="form-horizontal">确 定</button>
+			<button class="btn submit-btn ajax-post hidden" id="submit" target-form="form-horizontal">保存</button>
+			<button class="btn submit-btn ajax-post hidden" id="run_filter" target-form="form-horizontal">保存并运行</button>
+
 			<a class="btn btn-return" href="{$Think.cookie.__forward__}">返 回</a>
-			
 			<input type="hidden" name="id" value="{$data.id|default=''}"/>
 		</div>
 	</form>
@@ -278,6 +284,9 @@
 			<div class="type type_num">
 				<input type="text" name="condition" value="" class="text" style="width:100px;"/>
 			</div>
+			<div class="type type_text">
+				<input type="text" name="condition" value="" class="text" style="width:100px;"/>
+			</div>
 			<div class="type type_str">
 				<input type="radio" name="bool" value="true">包含
 				<input type="radio" name="bool" value="false">不包含 
@@ -288,9 +297,6 @@
 			</div>
 			<div class="type type_num_menu">
 				<select name="menu">
-					<option>筹资现金</option>
-					<option>经营现金</option>
-					<option>投资现金</option>
 				</select>
 				<input type="text" name="condition" value="" class="text" style="width:70px;"/>
 			</div>
@@ -304,11 +310,12 @@
 				<input type="text" name="condition" value="" class="text" style="width:70px;"/>
 			</div>
 		</div>
-		<div class="error_message" style="float:left;display:none;">
+		<div class="error_message" style="display:none;">
 			<div style="color:red;">*</div>
 		</div>
-		<div style="color:#c2c2c2;">&nbsp;&nbsp;&nbsp;{$vo['attr']}</div>
+		<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:10px;">{$vo['attr']}</div>
 	</div>
+	
 </div>
 </block>
 
@@ -337,9 +344,10 @@ var isBlank=function(str){
 }
 
 $(function(){
-	var str=$("input[name=filterMenus]").val()+"";
-	console.log(str);
+	var str=$("input[name=filterMenus]").val();
 	var filterMenus= eval('(' + str + ')');
+	str=$("input[name=stockFilters]").val();
+	var stockFilters=eval('(' + str + ')');
 
 	var condition=function(type){
 		var obj=$("#filter_html .condition_class .type_"+type);
@@ -379,7 +387,7 @@ $(function(){
 				if(type=='num_menu'){
 					menus=filterMenus[objx.val()];
 					for(var i=0;i<menus.length;i++){
-						menuHtml+=("<option value='"+menus[i]['menu']+"'>"+menus[i]['menu']+"</option>");
+						menuHtml+=("<option value='"+menus[i]['value']+"'>"+menus[i]['menu']+"</option>");
 					}
 					console.log(menuHtml);
 				}
@@ -387,10 +395,18 @@ $(function(){
 				console.log("type="+type);
 				var obj=$(this).parent();
 				var condition_class=obj.next(".condition_class");
-
 				var condi=condition(type);
-
 				condi.find('select[name=menu]').html(menuHtml);
+
+				var attrText;
+				for(var i=0;i<stockFilters.length;i++){
+					if(objx.val()==stockFilters[i]['name']){
+						attrText=stockFilters[i]['attr'];
+						break;
+					}
+				}
+			
+				condition_class.parent().find(".attr").html(attrText);
 
 				condition_class.html(condi);
 
@@ -452,6 +468,9 @@ $(function(){
 				if(!numValid(condition)){
 					error_message.show();
 				}
+			}else if(typeDiv.hasClass("type_text")){
+				var condition=typeDiv.find("input[name=condition]").val();
+				
 			}else if(typeDiv.hasClass("type_str")){
 				var bool=typeDiv.find("input[type=radio]:checked").val();
 				var condition=typeDiv.find("input[name=condition]").val();
@@ -481,7 +500,6 @@ $(function(){
 			}
 		});
 
-
 		var dataArray=new Array();
 		$("#filters .filter").each(function(){
 			var join=$(this).find("input[name=join]").is(':checked')==true;
@@ -494,6 +512,9 @@ $(function(){
 				var typeDiv=$(this).find(".type");
 
 				if(typeDiv.hasClass("type_num")){
+					var condition=typeDiv.find("input[name=condition]").val();
+					data.condition=condition;
+				}else if(typeDiv.hasClass("type_text")){
 					var condition=typeDiv.find("input[name=condition]").val();
 					data.condition=condition;
 				}else if(typeDiv.hasClass("type_str")){
@@ -557,77 +578,162 @@ $(function(){
 		});
 		convert();
 	};
-
 	bindConvert();
+
 
 	$("#add_filter").click(function(){
 		var type=getType($('#filter_html .stock_filter_class'));
 		$("#filters").append($("#filter_html").html());
 		var x=$("#filters").children().last();
-		x.children(".condition_class").html(condition(type));
+
+		var objx=x.find(".stock_filter_class");
+
+		var menus;
+		var menuHtml="";
+		if(type=='num_menu'){
+			menus=filterMenus[objx.val()];
+			for(var i=0;i<menus.length;i++){
+				menuHtml+=("<option value='"+menus[i]['value']+"'>"+menus[i]['menu']+"</option>");
+			}
+			console.log(menuHtml);
+		}
+
+		var condi=condition(type);
+		condi.find('select[name=menu]').html(menuHtml);
+
+		var attrText;
+		for(var i=0;i<stockFilters.length;i++){
+			if(objx.val()==stockFilters[i]['name']){
+				attrText=stockFilters[i]['attr'];
+				break;
+			}
+		}
+
+		var condition_class=x.children(".condition_class");
+
+		condition_class.parent().find(".attr").html(attrText);
+
+		condition_class.html(condi);
 
 		bindConvert();
 	});
 
+	var alertInfo=function(data){
+		if (data.status==1) {
+			if (data.url) {
+				updateAlert(data.info + ' 页面即将自动跳转~','alert-success');
+			}else{
+				updateAlert(data.info ,'alert-success');
+			}
+			setTimeout(function(){
+				if (data.url) {
+					location.href=data.url;
+				}else if( $(that).hasClass('no-refresh')){
+					$('#top-alert').find('button').click();
+					$(that).removeClass('disabled').prop('disabled',false);
+				}else{
+					location.reload();
+				}
+			},1500);
+		}else{
+			updateAlert(data.info);
+			setTimeout(function(){
+				if (data.url) {
+					location.href=data.url;
+				}else{
+					$('#top-alert').find('button').click();
+					$(that).removeClass('disabled').prop('disabled',false);
+				}
+			},1500);
+		}
+	}
+
 	var runAction=function(data){
 		$.unblockUI();
 		
-		if(data.status==1){
-			alert("过滤器不能为空");
-			return;
-		}
-			var html="";
-			var stocks_num=0;
-			if(data.stocks){
-				for(var i=0;i<data.stocks.length;i++){
-					html+="<tr style=\"text-align:right;\">";
-						html+=("<td style=\"text-align:left;\">"+data.stocks[i]['market']+"."+data.stocks[i]['code']+"</td>")
-						html+=("<td style=\"text-align:left;\">"+data.stocks[i]['name']+"</td>")
-						html+=("<td>"+data.stocks[i]['change_rate']+"</td>")
-						html+=("<td>"+data.stocks[i]['curr_price']+"</td>")
-						html+=("<td>"+data.stocks[i]['zongshizhi']+"</td>")
-						html+=("<td>"+data.stocks[i]['shiyinglvttm']+"</td>")
-					html+="</tr>";
-				}
-				stocks_num=data.stocks.length;
-			}
-			$("#stocks_table").html(html);
-			$("#stocks_num").text(stocks_num);
+		alertInfo(data);
 
-			html="";
-			if(data.changeRate){
-				html+="<tr>";
-					html+="<td style=\"width:40px;\">去沪<br>深300</td>";
-					html+="<td>"+data.changeRate['day7_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['day14_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['day21_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['month1_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['month3_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['month6_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year1_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year2_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year3_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year4_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year5_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year6_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year7_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year8_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year9_change_rate']+"</td>";
-					html+="<td>"+data.changeRate['year10_change_rate']+"</td>";
+		var html="";
+		var stocks_num=0;
+		if(data.stocks){
+			for(var i=0;i<data.stocks.length;i++){
+				html+="<tr style=\"text-align:right;\">";
+					html+=("<td style=\"text-align:left;\">"+data.stocks[i]['market']+"."+data.stocks[i]['code']+"</td>")
+					html+=("<td style=\"text-align:left;\">"+data.stocks[i]['name']+"</td>")
+					html+=("<td>"+data.stocks[i]['change_rate']+"</td>")
+					html+=("<td>"+data.stocks[i]['curr_price']+"</td>")
+					html+=("<td>"+data.stocks[i]['zongshizhi']+"</td>")
+					html+=("<td>"+data.stocks[i]['shiyinglvttm']+"</td>")
 				html+="</tr>";
 			}
-			$("#changeRate_table").html(html);
-
-			
-
+			stocks_num=data.stocks.length;
 		}
+		$("#stocks_table").html(html);
+		$("#stocks_num").text(stocks_num);
 
+		html="";
+		if(data.changeRate){
+			html+="<tr>";
+				html+="<td style=\"width:40px;\">去沪<br>深300</td>";
+				html+="<td>"+data.changeRate['day7_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['day14_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['day21_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['month1_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['month3_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['month6_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year1_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year2_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year3_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year4_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year5_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year6_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year7_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year8_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year9_change_rate']+"</td>";
+				html+="<td>"+data.changeRate['year10_change_rate']+"</td>";
+			html+="</tr>";
+		}
+		$("#changeRate_table").html(html);
+
+	}
+	
+	$("#submit").click(function(){
+		var id=$("input[name=id]").val();
+		var run_filter_url=$("input[name=run_filter_url]").val();
+		var update_url=$("input[name=update_url]").val();
+
+		var id=$("input[name=id]").val();
+		var filters=$("input[name=filters]").val();
+		var title=$("input[name=title]").val();
+		var attr=$("textarea[name=attr]").val();
+		var img=$("input[name=img]").val();
+		var type=$("select[name=type]").val();
+		var status=$("select[name=status]").val();
+		var action=$("input[name=action]").val();
+
+		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action},function(data){
+			alertInfo(data);
+		});
+	});
 	$("#run_filter").click(function(){
 		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 		var id=$("input[name=id]").val();
 		var run_filter_url=$("input[name=run_filter_url]").val();
+		var update_url=$("input[name=update_url]").val();
 
-		$.post(run_filter_url,{id:id},runAction);
+		var id=$("input[name=id]").val();
+		var filters=$("input[name=filters]").val();
+		var title=$("input[name=title]").val();
+		var attr=$("textarea[name=attr]").val();
+		var img=$("input[name=img]").val();
+		var type=$("select[name=type]").val();
+		var status=$("select[name=status]").val();
+		var action=$("input[name=action]").val();
+		
+		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action},function(data){
+			$.post(run_filter_url,{id:data.id,action:action},runAction);
+		});
+
 	});
 
 	$("#test_filter").click(function(){
@@ -641,12 +747,6 @@ $(function(){
 	});
 
 	
-	$('#submit').click(function(){
-		convert();
-		$('#form').submit();
-	});
-
-	
     $('.time').datetimepicker({
         format: 'yyyy-mm-dd hh:ii',
         language:"zh-CN",
@@ -655,61 +755,6 @@ $(function(){
     });
     showTab();
 
-	<if condition="C('OPEN_DRAFTBOX') and (ACTION_NAME eq 'add' or $data['status'] eq 3)">
-	//保存草稿
-	var interval;
-	$('#autoSave').click(function(){
-        var target_form = $(this).attr('target-form');
-        var target = $(this).attr('url')
-        var form = $('.'+target_form);
-        var query = form.serialize();
-        var that = this;
-
-        $(that).addClass('disabled').attr('autocomplete','off').prop('disabled',true);
-        $.post(target,query).success(function(data){
-            if (data.status==1) {
-                updateAlert(data.info ,'alert-success');
-                $('input[name=id]').val(data.data.id);
-            }else{
-                updateAlert(data.info);
-            }
-            setTimeout(function(){
-                $('#top-alert').find('button').click();
-                $(that).removeClass('disabled').prop('disabled',false);
-            },1500);
-        })
-
-        //重新开始定时器
-        clearInterval(interval);
-        autoSaveDraft();
-        return false;
-    });
-
-	//Ctrl+S保存草稿
-	$('body').keydown(function(e){
-		if(e.ctrlKey && e.which == 83){
-			$('#autoSave').click();
-			return false;
-		}
-	});
-
-	//每隔一段时间保存草稿
-	function autoSaveDraft(){
-		interval = setInterval(function(){
-			//只有基础信息填写了，才会触发
-			var title = $('input[name=title]').val();
-			var name = $('input[name=name]').val();
-			var des = $('textarea[name=description]').val();
-			if(title != '' || name != '' || des != ''){
-				$('#autoSave').click();
-			}
-		}, 1000*parseInt({:C('DRAFT_AOTOSAVE_INTERVAL')}));
-	}
-	autoSaveDraft();
-
-	</if>
-
-	
 
 });
 </script>
