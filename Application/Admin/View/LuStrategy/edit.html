@@ -171,7 +171,7 @@
 							<div class="error_message" style="display:none;">
 								<div style="color:red;">*</div>
 							</div>
-							<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:10px;">{$vo['attr']}</div>
+							<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:5px;">{$vo['attr']}</div>
 						</div>
 	           		</volist>
 	        	</div>
@@ -181,29 +181,29 @@
 							<div style="line-height:30px;">
 								总共 <font id="stocks_num" style="color:red;font-weight:bold;">{$data['stocks']|count}</font> 只股票
 							</div>
-							<table border="1px" style="font-size:9px;border:1px solid #d2d2d2;">
-								<thead>
-									<tr>
-										<th style="width:40px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-										<th>7天</th>
-										<th>14天</th>
-										<th>21天</th>
-										<th>1月</th>
-										<th>3月</th>
-										<th>6月</th>
-										<th>1年</th>
-										<th>2年</th>
-										<th>3年</th>
-										<th>4年</th>
-										<th>5年</th>
-										<th>6年</th>
-										<th>7年</th>
-										<th>8年</th>
-										<th>9年</th>
-										<th>10年</th>
+							<table border="1px" style="font-size:9px;border:1px solid #d2d2d2;width:100%;color:#fff;text-align:center;">
+								<thead style="background-color: #353535;">
+									<tr style="line-height:35px;">
+										<td style="width:40px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+										<td>7天</td>
+										<td>14天</td>
+										<td>21天</td>
+										<td>1月</td>
+										<td>3月</td>
+										<td>6月</td>
+										<td>1年</td>
+										<td>2年</td>
+										<td>3年</td>
+										<td>4年</td>
+										<td>5年</td>
+										<td>6年</td>
+										<td>7年</td>
+										<td>8年</td>
+										<td>9年</td>
+										<td>10年</td>
 									</tr>
 								</thead>
-								<tbody id="changeRate_table">
+								<tbody id="changeRate_table" style="color:#686868">
 									<tr>
 										<td style="width:40px;">去沪<br>深300</td>
 										<td>{$data['changeRate']['day7_change_rate']}</td>
@@ -313,7 +313,7 @@
 		<div class="error_message" style="display:none;">
 			<div style="color:red;">*</div>
 		</div>
-		<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:10px;">{$vo['attr']}</div>
+		<div class="attr" style="float:left;color:#c2c2c2;line-height:25px;width:100%;padding-left:25px;padding-bottom:5px;">{$vo['attr']}</div>
 	</div>
 	
 </div>
@@ -628,10 +628,7 @@ $(function(){
 			setTimeout(function(){
 				if (data.url) {
 					location.href=data.url;
-				}else if( $(that).hasClass('no-refresh')){
-					$('#top-alert').find('button').click();
-					$(that).removeClass('disabled').prop('disabled',false);
-				}else{
+				}else {
 					location.reload();
 				}
 			},1500);
