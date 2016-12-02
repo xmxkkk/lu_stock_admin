@@ -16,6 +16,11 @@ use Think\Model;
  */
 class LuStrategyModel extends Model{
 	
-
+	/* 自动验证规则 */
+    protected $_validate = array(
+        array('title', 'require', '名字不能为空', self::MUST_VALIDATE, 'regex', self::MODEL_BOTH),
+        array('attr', 'require', '描述不能为空', self::MUST_VALIDATE, 'length', self::MODEL_BOTH),
+    	array('img', 'require', '图片不能为空', self::VALUE_VALIDATE, 'regex', self::MODEL_BOTH),
+    );
 
 }

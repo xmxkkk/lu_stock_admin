@@ -376,3 +376,7 @@ function get_action_type($type, $all = false){
 function start_with($str, $needle) {
     return strpos($str, $needle) === 0;
 }
+
+function contain($a,$b){
+    return strpos($a, $b)!==false;
+}

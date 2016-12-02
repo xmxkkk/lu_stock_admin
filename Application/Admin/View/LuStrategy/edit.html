@@ -10,12 +10,15 @@
 	<!-- 标签页导航 -->
 <div class="tab-wrap">
 	<div class="tab-content">
+	
+	<input type="hidden" name="run_filter_url" value="{:U('run_filter')}">
+	<input type="hidden" name="stocks_url" value="{:U('stocks')}">
+	<input type="hidden" name="filterMenus" value='{$filterMenus|json_encode}'>
+		
 	<!-- 表单 -->
-	<form id="form" action="{:U('update')}" method="post" class="form-horizontal">
+	<form id="form" action="" method="post" class="form-horizontal">
 		<input type="hidden" name="id" value="{$data.id}">
 		<input type="hidden" name="filters" value="">
-		<input type="hidden" name="run_filter_url" value="{:U('run_filter')}">
-		<input type="hidden" name="stocks_url" value="{:U('stocks')}">
 		<!-- 基础文档模型 -->
         <div id="tab">
             <div class="form-item">
@@ -102,7 +105,8 @@
 			<div class="form-item">
 				<label class="item-label">过滤条件<span class="check-tips"></span>
 					<span class="btn" id="add_filter">增加过滤器</span>
-					<span class="btn" id="run_filter">测试过滤器</span>
+					<span class="btn" id="run_filter">运行过滤器</span>
+					<span class="btn" id="test_filter">测试过滤器</span>
 				</label>
 				<div class="controls" id="filters">
 					<volist name="data['filters']" id="vo" key="k">
@@ -138,9 +142,9 @@
 								<eq name="vo['type']" value="num_menu">
 								<div class="type type_num_menu">
 									<select name="menu">
-										<option>筹资现金</option>
-										<option>经营现金</option>
-										<option>投资现金</option>
+										<volist name="vo['menus']" id='vomenu'>
+										<option value="{$vomenu['menu']}" <eq name="vo['menu']" value="$vomenu.menu">selected</eq>>{$vomenu['menu']}</option>
+										</volist>
 									</select>
 									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:70px;"/>
 								</div>
@@ -333,6 +337,10 @@ var isBlank=function(str){
 }
 
 $(function(){
+	var str=$("input[name=filterMenus]").val()+"";
+	console.log(str);
+	var filterMenus= eval('(' + str + ')');
+
 	var condition=function(type){
 		var obj=$("#filter_html .condition_class .type_"+type);
 		if(type=="str"){
@@ -354,18 +362,37 @@ $(function(){
 			}
 		}
 	}
+	var getFilter=function(obj){
+		return obj.val();
+	}
 
 	var bindAction=function(){
 		console.log("bindAction");
 		$(".stock_filter_class").each(function(){
 			$(this).unbind('change');
 			$(this).change(function(e){
+				var objx=$(e.target);
 
-				var type=getType($(e.target));
+				var type=getType(objx);
+				var menus;
+				var menuHtml="";
+				if(type=='num_menu'){
+					menus=filterMenus[objx.val()];
+					for(var i=0;i<menus.length;i++){
+						menuHtml+=("<option value='"+menus[i]['menu']+"'>"+menus[i]['menu']+"</option>");
+					}
+					console.log(menuHtml);
+				}
+
 				console.log("type="+type);
 				var obj=$(this).parent();
 				var condition_class=obj.next(".condition_class");
-				condition_class.html(condition(type));
+
+				var condi=condition(type);
+
+				condi.find('select[name=menu]').html(menuHtml);
+
+				condition_class.html(condi);
 
 				bindConvert();
 			});
@@ -542,14 +569,13 @@ $(function(){
 		bindConvert();
 	});
 
-	$("#run_filter").click(function(){
-		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
-		var run_filter_url=$("input[name=run_filter_url]").val();
-		var filters=$("input[name=filters]").val();
+	var runAction=function(data){
+		$.unblockUI();
 		
-		var stocks_url=$("input[name=stocks_url]").val();
-
-		$.post(run_filter_url,{filters:filters},function(data){
+		if(data.status==1){
+			alert("过滤器不能为空");
+			return;
+		}
 			var html="";
 			var stocks_num=0;
 			if(data.stocks){
@@ -592,17 +618,26 @@ $(function(){
 			}
 			$("#changeRate_table").html(html);
 
-			$.unblockUI();
+			
 
-			//stocks_table
+		}
 
-			/*
-			$.post(stocks_url,{id:data.id},function(stocks){
-				alert(stocks);
-				console.log(stocks);
-			});
-	*/
-		});
+	$("#run_filter").click(function(){
+		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
+		var id=$("input[name=id]").val();
+		var run_filter_url=$("input[name=run_filter_url]").val();
+
+		$.post(run_filter_url,{id:id},runAction);
+	});
+
+	$("#test_filter").click(function(){
+		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
+		var run_filter_url=$("input[name=run_filter_url]").val();
+		var filters=$("input[name=filters]").val();
+		
+		var stocks_url=$("input[name=stocks_url]").val();
+
+		$.post(run_filter_url,{filters:filters},runAction);
 	});
 
 	

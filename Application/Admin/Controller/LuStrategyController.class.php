@@ -25,6 +25,16 @@ class LuStrategyController extends AdminController {
 
         $stockFilters=M('LuStrategyStockfilter')->select();
         $this->assign('stockFilters',$stockFilters);
+
+        $filterMenus=array();
+
+        for($i=0;$i<count($stockFilters);$i++){
+            if($stockFilters[$i]['type']=='num_menu'){
+                $filterMenus[$stockFilters[$i]['name']]=M('FilterMenu')->where(array('type'=>$stockFilters[$i]['name']))->order('ord')->select();
+            }
+        }
+        $this->assign('filterMenus',$filterMenus);
+
     }
     private function combine(&$data){
         $data['type_name']=$this->types[$data['type']];
@@ -35,7 +45,7 @@ class LuStrategyController extends AdminController {
         $data['stocks']=M('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->select();//print_r($data['stocks']);
         $data['filters']=M('LuStrategyFilter')->where(array('id'=>$data['id']))->select();
         $data['changeRate']=M("LuStrategyChangeRate")->where(array('id'=>$data['id']))->order("dt desc")->find();
-//        print_r($data['changeRate']);
+
 
         for($i=0;$i<count($data['filters']);$i++){
             $stockFilter=M('LuStrategyStockfilter')->where(array('name'=>$data['filters'][$i]['filter']))->find();
@@ -47,6 +57,7 @@ class LuStrategyController extends AdminController {
                 $arr=explode(",",$data['filters'][$i]['condition']);
                 $data['filters'][$i]['menu']=$arr[0];
                 $data['filters'][$i]['condition']=$arr[1];
+                $data['filters'][$i]['menus']=M('FilterMenu')->where(array('type'=>$stockFilter['name']))->order('ord')->select();//print_r($data['filters'][$i]['menus']);
             }else if($data['filters'][$i]['type']=='str'){
                 if(start_with($data['filters'][$i]['condition'],'!IN')){
                     $data['filters'][$i]['bool']="false";
@@ -66,7 +77,6 @@ class LuStrategyController extends AdminController {
                 $data['filters'][$i]['condition']=$arr[2];
             }
         }
-
     }
     private function combines(&$list){
         for($i=0;$i<count($list);$i++){
@@ -88,16 +98,74 @@ class LuStrategyController extends AdminController {
     }
 
     public function edit($id=0){
-        $data=M('LuStrategy')->where(array('id' => $id))->find();
-        $this->combine($data);
 
-        $this->assign('data',$data);
+        if(IS_POST){
+            $this->update();
+        }else{
+            $data=M('LuStrategy')->where(array('id' => $id))->find();
+            $this->combine($data);
+            $this->assign('data',$data);
 
-        $this->display();
+            $this->display();
+        }
     }
-    public function add($id=0){
+    public function add(){
+        if(IS_POST){
+            $filters=trim(I('post.filters'));
+            $title=trim(I('post.title'));
+            $attr=trim(I('post.attr'));
+            $img=trim(I('post.img'));
+            $type=trim(I('post.type'));
+            $status=trim(I('post.status'));
 
-        $this->display("edit");
+            if(empty($title)){
+                $this->error('名字不能为空');
+            }
+            if(empty($attr)){
+                $this->error('描述不能为空');
+            }
+            if(empty($img)){
+                $this->error('图片不能为空');
+            }
+
+            $arr=json_decode($filters);
+            if(count($arr)<1){
+                $this->error("过滤器不足");
+            }
+
+            $LuStrategy = D('LuStrategy');
+            $data=array(
+                'title'=>$title,
+                'attr'=>$attr,
+                'img'=>$img,
+                'type'=>$type,
+                'status'=>$status
+                );
+
+            $id=$LuStrategy->data($data)->add();
+
+            M('LuStrategyFilter')->where(array('id'=>$id))->delete();
+
+            for($i=0;$i<count($arr);$i++){
+                $filter=$arr[$i]->filter;
+                $condition=$arr[$i]->condition;
+
+                M('LuStrategyFilter')->data(array(
+                    'id'        =>$id,
+                    'filter'    =>$filter,
+                    'condition' =>$condition
+                    ))->add();
+            }
+
+            if($id){
+                   $this->success('新增成功', U('index'));
+            } else {
+                $this->error('新增失败');
+            }
+        }else{
+             $this->display("edit");
+        }
+      
     }
 
     public function update(){
@@ -139,11 +207,22 @@ class LuStrategyController extends AdminController {
         $this->success("更新成功");
     }
     public function run_filter(){
+        $result=new \stdClass();
+
         $id=I('post.id');
 
+        $filters=null;
         if($id==""){
             $id=-1;
             $filters=I('post.filters');
+            
+        }else{
+            $filters=M("LuStrategyFilter")->where(array("id"=>$id))->select();
+
+        }
+        if(count(json_decode($filters))==0){
+            $result->status=1;
+            $this->ajaxReturn($result);
         }
 
         $filters=json_encode(json_decode($filters));
@@ -154,13 +233,22 @@ class LuStrategyController extends AdminController {
         $data->id=$md5;
         $data->filters=base64_encode($filters);
 
-        exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"");
+        //exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"");
+
+        if(contain($_SERVER['SERVER_NAME'],"localhost") 
+            || contain($_SERVER['SERVER_NAME'],"127.0.0.1")){
+            //echo "java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"";
+            exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"");
+        }else{
+            exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"");
+        }
 
         $stocks=M('LuStrategyStock')->where(array("id"=>$id,"status"=>1))->select();
 
         $changeRate=M("LuStrategyChangeRate")->where(array("id"=>$id))->find();
 
-        $result=new \stdClass();
+        
+        $result->status=0;
         $result->md5=$md5;
         $result->stocks=$stocks;
         $result->changeRate=$changeRate;
@@ -173,5 +261,11 @@ class LuStrategyController extends AdminController {
         $stocks=M('LuStrategyStock')->where(array("id"=>$id))->select();
 
         $this->ajaxReturn($stocks);
+    }
+    public function del($id=0){
+        M("LuStrategy")->where(array("id"=>$id))->delete();
+        M("LuStrategyStock")->where(array("id"=>$id))->delete();
+        
+        $this->success('删除成功');
     }
 }
