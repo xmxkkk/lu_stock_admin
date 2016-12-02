@@ -103,11 +103,12 @@ class LuStrategyController extends AdminController {
         $this->assign('data',$data);
 
         $this->assign('aciton','edit');
-
+        $this->meta_title = '编辑策略';
         $this->display();
     }
     public function add(){
         $this->assign('aciton','add');
+        $this->meta_title = '新增策略';
         $this->display("edit");
     }
 
@@ -133,6 +134,13 @@ class LuStrategyController extends AdminController {
         $arr=json_decode($filters);
         if(count($arr)<1){
             $this->error("过滤器不足");
+        }
+
+        if($status==1 && $id>0){
+            $cnt=M("LuStrategyStock")->where(array('id'=>$id))->count();
+            if($cnt==0){
+                $this->error("没有运行不能设置为发布状态");
+            }
         }
         
         $data=array(
@@ -246,6 +254,7 @@ class LuStrategyController extends AdminController {
         $this->assign('level2',$level2);
         $this->assign('level3',$level3);//print_r($level3);
         
+        $this->meta_title = '行业信息';
         $this->display();
     }
 }

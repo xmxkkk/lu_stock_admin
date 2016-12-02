@@ -3,9 +3,7 @@
 <block name="body">
 	<script type="text/javascript" src="__STATIC__/uploadify/jquery.uploadify.min.js"></script>
 	<div class="main-title cf">
-		<h2>
-			编辑策略
-		</h2>
+		<h2>{$data['id']?'编辑':'新增'}策略</h2>
 	</div>
 	<!-- 标签页导航 -->
 <div class="tab-wrap">
@@ -38,7 +36,7 @@
 				<div class="controls">
 					<input type="file" id="upload_picture_img">
 					<input type="hidden" name="img" id="cover_id_img" value="{$data['img']}"/>
-					<div class="upload-img-box">
+					<div class="upload-img-box" style="width:330px;">
 					<notempty name="data['img']">
 						<div class="upload-pre-item" style="width:320px;height:182px;max-height:182px;"><img src="__ROOT__{$data['img']|get_cover='path'}" width="320px" height="182px"/></div>
 					</notempty>
@@ -619,6 +617,7 @@ $(function(){
 	});
 
 	var alertInfo=function(data){
+		$.unblockUI();
 		if (data.status==1) {
 			if (data.url) {
 				updateAlert(data.info + ' 页面即将自动跳转~','alert-success');
@@ -728,7 +727,11 @@ $(function(){
 		var action=$("input[name=action]").val();
 		
 		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action},function(data){
-			$.post(run_filter_url,{id:data.id,action:action},runAction);
+			if(data.status==1){
+				$.post(run_filter_url,{id:data.id,action:action},runAction);
+			}else{
+				alertInfo(data);
+			}
 		});
 
 	});
