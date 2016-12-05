@@ -33,6 +33,7 @@ class DatabaseController extends AdminController{
 
                 $list = array();
                 foreach ($glob as $name => $file) {
+
                     if(preg_match('/^\d{8,8}-\d{6,6}-\d+\.sql(?:\.gz)?$/', $name)){
                         $name = sscanf($name, '%4s%2s%2s-%2s%2s%2s-%d');
 
@@ -62,6 +63,16 @@ class DatabaseController extends AdminController{
             case 'export':
                 $Db    = Db::getInstance();
                 $list  = $Db->query('SHOW TABLE STATUS');
+                
+
+                $temp=array();
+                for($i=0;$i<count($list);$i++){
+                    $name=$list[$i]['Name'];
+                    if(start_with($name,C('DB_PREFIX')) || start_with($name,'lu_strategy') || in_array($name, array('filter_menu'))){
+                        $temp[]=$list[$i];
+                    }
+                }
+                $list=$temp;
                 $list  = array_map('array_change_key_case', $list);
                 $title = '数据备份';
                 break;

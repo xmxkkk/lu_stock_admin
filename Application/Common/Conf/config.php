@@ -14,7 +14,7 @@
 return array(
     /* 模块相关配置 */
     'AUTOLOAD_NAMESPACE' => array('Addons' => ONETHINK_ADDON_PATH), //扩展模块列表
-    'DEFAULT_MODULE'     => 'Home',
+    'DEFAULT_MODULE'     => 'Admin',
     'MODULE_DENY_LIST'   => array('Common', 'User'),
     //'MODULE_ALLOW_LIST'  => array('Home','Admin'),
 
@@ -44,7 +44,7 @@ return array(
     'DB_USER'   => 'root', // 用户名
     'DB_PWD'    => '',  // 密码
     'DB_PORT'   => '3306', // 端口
-    'DB_PREFIX' => '', // 数据库表前缀
+    'DB_PREFIX' => 'ot_', // 数据库表前缀
 
     /* 文档模型配置 (文档模型核心配置，请勿更改) */
     'DOCUMENT_MODEL_TYPE' => array(2 => '主题', 1 => '目录', 3 => '段落'),

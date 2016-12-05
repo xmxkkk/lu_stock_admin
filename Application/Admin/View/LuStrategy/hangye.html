@@ -1,54 +1,65 @@
 <extend name="Public/base"/>
 <block name="body">
-	<!-- 标题 -->
-	<div class="main-title">
-		<h2>
-		</h2>
-	</div>
-
-
 	<!-- 数据表格 -->
     <div class="data-table">
 		<table style="width:30%;float:left;margin-right:30px;">
 			<thead>
 				<tr>
 					<th>一级分类</th>
+					<th></th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				<volist name="level1" id="vo">
+				<foreach name="level1" item="vo" key="k">
+				<if condition="$k%3 eq 0">
 				<tr>
+				</if>
 					<td>{$vo['level1']}</td>
+				<if condition="$k%3 eq 2">
 				</tr>
-				</volist>
+				</if>
+				</foreach>
 			</tbody>
 		</table>
 		<table style="width:30%;float:left;margin-right:30px;">
 			<thead>
 				<tr>
 					<th>二级分类</th>
+					<th></th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				<volist name="level2" id="vo">
+				<foreach name="level2" item="vo" key="k">
+				<if condition="$k%3 eq 0">
 				<tr>
+				</if>
 					<td>{$vo['level2']}</td>
+				<if condition="$k%3 eq 2">
 				</tr>
-				</volist>
+				</if>
+				</foreach>
 			</tbody>
 		</table>
 		<table style="width:30%;float:left;margin-right:30px;">
 			<thead>
 				<tr>
 					<th>三级分类</th>
+					<th></th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				<volist name="level3" id="vo">
+				<foreach name="level3" item="vo" key="k">
+				<if condition="$k%3 eq 0">
 				<tr>
+				</if>
 					<td>{$vo['level3']}</td>
+				<if condition="$k%3 eq 2">
 				</tr>
-				</volist>
+				</if>
+				</foreach>
 			</tbody>
 		</table>
 	</div>

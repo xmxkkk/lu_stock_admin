@@ -1,4 +1,4 @@
-<div class="span{$addons_config.width}">
+<div class="span{$addons_config.width}" style="padding-left:25%;">
 	<div class="columns-mod">
 		<div class="hd cf">
 			<h5>{$addons_config.title}</h5>
@@ -9,13 +9,8 @@
 			<div class="sys-info">
 				<table>
 					<tr>
-						<th>OneThink版本</th>
-						<td>{$Think.ONETHINK_VERSION}&nbsp;&nbsp;&nbsp;
-							<notempty name="addons_config.new_version">
-								<a href="http://www.onethink.cn" target="_blank">
-									发现新版本[{$addons_config.new_version}]
-								</a>
-							</notempty>
+						<th>应用版本</th>
+						<td>{$Think.ONETHINK_VERSION}
 						</td>
 					</tr>
 					<tr>

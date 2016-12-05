@@ -621,16 +621,25 @@ $(function(){
 		if (data.status==1) {
 			if (data.url) {
 				updateAlert(data.info + ' 页面即将自动跳转~','alert-success');
+				setTimeout(function(){
+					if (data.url) {
+						location.href=data.url;
+					}else {
+						location.reload();
+					}
+				},1500);
 			}else{
 				updateAlert(data.info ,'alert-success');
+					setTimeout(function(){
+					if (data.url) {
+						location.href=data.url;
+					}else{
+						$('#top-alert').find('button').click();
+						$(that).removeClass('disabled').prop('disabled',false);
+					}
+				},1500);
 			}
-			setTimeout(function(){
-				if (data.url) {
-					location.href=data.url;
-				}else {
-					location.reload();
-				}
-			},1500);
+			
 		}else{
 			updateAlert(data.info);
 			setTimeout(function(){
@@ -647,6 +656,9 @@ $(function(){
 	var runAction=function(data){
 		$.unblockUI();
 		
+		if(data.test==1){
+			data.url=undefined;
+		}
 		alertInfo(data);
 
 		var html="";

@@ -15,6 +15,8 @@ if(version_compare(PHP_VERSION,'5.3.0','<'))  die('require PHP > 5.3.0 !');
  */
 //define ( 'APP_DEBUG', true );
 
+//header('location:index.php?s=/admin/public/login.html');
+
 /**
  * 应用目录设置
  * 安全期间，建议安装调试完成后移动到非WEB目录

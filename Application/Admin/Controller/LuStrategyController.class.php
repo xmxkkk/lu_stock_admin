@@ -23,14 +23,14 @@ class LuStrategyController extends AdminController {
         $this->assign('statuses',$this->statuses);
         $this->assign('run_statuses',$this->run_statuses);
 
-        $stockFilters=M('LuStrategyStockfilter')->select();
+        $stockFilters=D('LuStrategyStockfilter')->select();
         $this->assign('stockFilters',$stockFilters);
 
         $filterMenus=array();
 
         for($i=0;$i<count($stockFilters);$i++){
             if($stockFilters[$i]['type']=='num_menu'){
-                $filterMenus[$stockFilters[$i]['name']]=M('FilterMenu')->where(array('type'=>$stockFilters[$i]['name']))->order('ord')->select();
+                $filterMenus[$stockFilters[$i]['name']]=D('FilterMenu')->where(array('type'=>$stockFilters[$i]['name']))->order('ord')->select();
             }
         }
         $this->assign('filterMenus',$filterMenus);
@@ -41,14 +41,14 @@ class LuStrategyController extends AdminController {
         $data['status_name']=$this->statuses[$data['status']];
         $data['run_status_name']=$this->run_statuses[$data['run_status']];
 
-        $data['stock_num']=M('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->count();
-        $data['stocks']=M('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->select();//print_r($data['stocks']);
-        $data['filters']=M('LuStrategyFilter')->where(array('id'=>$data['id']))->select();
-        $data['changeRate']=M("LuStrategyChangeRate")->where(array('id'=>$data['id']))->order("dt desc")->find();
+        $data['stock_num']=D('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->count();
+        $data['stocks']=D('LuStrategyStock')->where(array('id'=>$data['id'],'status'=>1))->select();//print_r($data['stocks']);
+        $data['filters']=D('LuStrategyFilter')->where(array('id'=>$data['id']))->select();
+        $data['changeRate']=D("LuStrategyChangeRate")->where(array('id'=>$data['id']))->order("dt desc")->find();
 
 
         for($i=0;$i<count($data['filters']);$i++){
-            $stockFilter=M('LuStrategyStockfilter')->where(array('name'=>$data['filters'][$i]['filter']))->find();
+            $stockFilter=D('LuStrategyStockfilter')->where(array('name'=>$data['filters'][$i]['filter']))->find();
             $data['filters'][$i]['type']=$stockFilter['type'];
             $data['filters'][$i]['title']=$stockFilter['title'];
             $data['filters'][$i]['attr']=$stockFilter['attr'];
@@ -57,7 +57,7 @@ class LuStrategyController extends AdminController {
                 $arr=explode(",",$data['filters'][$i]['condition']);
                 $data['filters'][$i]['menu']=$arr[0];
                 $data['filters'][$i]['condition']=$arr[1];
-                $data['filters'][$i]['menus']=M('FilterMenu')->where(array('type'=>$stockFilter['name']))->order('ord')->select();//print_r($data['filters'][$i]['menus']);
+                $data['filters'][$i]['menus']=D('FilterMenu')->where(array('type'=>$stockFilter['name']))->order('ord')->select();//print_r($data['filters'][$i]['menus']);
             }else if($data['filters'][$i]['type']=='str'){
                 if(start_with($data['filters'][$i]['condition'],'!IN')){
                     $data['filters'][$i]['bool']="false";
@@ -87,8 +87,8 @@ class LuStrategyController extends AdminController {
     public function index(){
     /* 查询条件初始化 */
         $map = array();
-
-        $list = $this->lists('LuStrategy', $map,'id');
+        
+        $list = $this->lists(D('LuStrategy'), $map,'id');
 
         $this->combines($list);
 
@@ -98,7 +98,7 @@ class LuStrategyController extends AdminController {
     }
 
     public function edit($id=0){
-        $data=M('LuStrategy')->where(array('id' => $id))->find();
+        $data=D('LuStrategy')->where(array('id' => $id))->find();
         $this->combine($data);
         $this->assign('data',$data);
 
@@ -137,7 +137,7 @@ class LuStrategyController extends AdminController {
         }
 
         if($status==1 && $id>0){
-            $cnt=M("LuStrategyStock")->where(array('id'=>$id))->count();
+            $cnt=D("LuStrategyStock")->where(array('id'=>$id))->count();
             if($cnt==0){
                 $this->error("没有运行不能设置为发布状态");
             }
@@ -151,18 +151,18 @@ class LuStrategyController extends AdminController {
             'status'=>$status
             );
         if(empty($id)){
-            $id=M('LuStrategy')->data($data)->add();
+            $id=D('LuStrategy')->data($data)->add();
         }else{
-            M('LuStrategy')->where(array('id'=>$id))->data($data)->save();
+            D('LuStrategy')->where(array('id'=>$id))->data($data)->save();
         }
 
-        M('LuStrategyFilter')->where(array('id'=>$id))->delete();
+        D('LuStrategyFilter')->where(array('id'=>$id))->delete();
 
         for($i=0;$i<count($arr);$i++){
             $filter=$arr[$i]->filter;
             $condition=$arr[$i]->condition;
 
-            M('LuStrategyFilter')->data(array(
+            D('LuStrategyFilter')->data(array(
                 'id'        =>$id,
                 'filter'    =>$filter,
                 'condition' =>$condition
@@ -179,7 +179,7 @@ class LuStrategyController extends AdminController {
         $this->ajaxReturn($result);
     }
     public function run_filter(){
-        $result=new \stdClass();
+        $result=array();
 
         $id=I('post.id');
 
@@ -188,8 +188,10 @@ class LuStrategyController extends AdminController {
             $id=-1;
             $filters=I('post.filters');
             $filters=json_decode($filters);
+            $result['test']=1;
         }else{
             $filters=M("LuStrategyFilter")->where(array("id"=>$id))->select();
+             $result['test']=0;
         }
         if(count($filters)==0){
             $this->error("过滤器不足");
@@ -205,20 +207,20 @@ class LuStrategyController extends AdminController {
 
         //exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"");
 
-        if(contain($_SERVER['SERVER_NAME'],"localhost") 
-            || contain($_SERVER['SERVER_NAME'],"127.0.0.1")){
+        if(strtoupper(substr(PHP_OS,0,3))==='WIN'){
             //echo "java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"";
             exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"");
         }else{
+            //echo "/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"";
             exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"");
         }
 
-        $stocks=M('LuStrategyStock')->where(array("id"=>$id,"status"=>1))->select();
+        $stocks=D('LuStrategyStock')->where(array("id"=>$id,"status"=>1))->select();
 
-        $changeRate=M("LuStrategyChangeRate")->where(array("id"=>$id))->find();
+        $changeRate=D("LuStrategyChangeRate")->where(array("id"=>$id))->find();
 
         
-        $result=array();
+        
 
         $result['status']=1;
         $result['info']="运行成功";
@@ -235,20 +237,20 @@ class LuStrategyController extends AdminController {
     public function stocks(){
         $id=I('post.id');
         $id=-1;
-        $stocks=M('LuStrategyStock')->where(array("id"=>$id))->select();
+        $stocks=D('LuStrategyStock')->where(array("id"=>$id))->select();
 
         $this->ajaxReturn($stocks);
     }
     public function del($id=0){
-        M("LuStrategy")->where(array("id"=>$id))->delete();
-        M("LuStrategyStock")->where(array("id"=>$id))->delete();
+        D("LuStrategy")->where(array("id"=>$id))->delete();
+        D("LuStrategyStock")->where(array("id"=>$id))->delete();
         
         $this->success('删除成功');
     }
     public function hangye(){
-        $level1=M("StockCompanyHangye")->group('level1')->select();
-        $level2=M("StockCompanyHangye")->group('level2')->select();
-        $level3=M("StockCompanyHangye")->group('level3')->select();
+        $level1=D("StockCompanyHangye")->group('level1')->select();
+        $level2=D("StockCompanyHangye")->group('level2')->select();
+        $level3=D("StockCompanyHangye")->group('level3')->select();
         
         $this->assign('level1',$level1);
         $this->assign('level2',$level2);
