@@ -21,16 +21,16 @@ class DataController extends HomeController {
 
 		$result=null;
 		if($id==1){
-			$luStrategys=M("LuStrategy")->where(array("status"=>1))->select();
+			$luStrategys=D("Admin/LuStrategy")->where(array("status"=>1))->select();
 			for($i=0;$i<count($luStrategys);$i++){
 				$id=$luStrategys[$i]['img'];
-				$picture=M("Picture")->where(array("id"=>$id))->find();
+				$picture=D("Admin/Picture")->where(array("id"=>$id))->find();
 				$luStrategys[$i]['img']=$picture['path'];
 			}
 
 			$result=$luStrategys;
 		}else if($id==2){
-			$luStrategyStocks=M("LuStrategyStock")->where("status=1 and id>=0")->select();
+			$luStrategyStocks=D("Admin/LuStrategyStock")->where("status=1 and id>=0")->select();
 			
 			$result=$luStrategyStocks;
 		}
