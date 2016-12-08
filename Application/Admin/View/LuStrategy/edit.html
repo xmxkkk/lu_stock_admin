@@ -139,7 +139,8 @@
 								</eq>
 								<eq name="vo['type']" value="bool">
 								<div class="type type_bool">
-									&nbsp;
+									<input type="radio" name="bool{$k}" value="true" <eq name="vo['bool']" value="true"> checked</eq>>是
+									<input type="radio" name="bool{$k}" value="false" <eq name="vo['bool']" value="false"> checked</eq>>否 
 								</div>
 								</eq>
 								<eq name="vo['type']" value="num_menu">
@@ -291,7 +292,8 @@
 				<input type="text" name="condition" value="" class="text" style="width:70px;"/>
 			</div>
 			<div class="type type_bool">
-				&nbsp;
+				<input type="radio" name="bool" value="true">是
+				<input type="radio" name="bool" value="false">否 
 			</div>
 			<div class="type type_num_menu">
 				<select name="menu">
@@ -349,7 +351,7 @@ $(function(){
 
 	var condition=function(type){
 		var obj=$("#filter_html .condition_class .type_"+type);
-		if(type=="str"){
+		if(type=="str"||type=="bool"){
 			var rand=parseInt(Math.random()*2000000000);
 			obj.find("input[type=radio]").each(function(){
 				$(this).attr('name','bool'+rand);
@@ -481,7 +483,10 @@ $(function(){
 				}
 
 			}else if(typeDiv.hasClass("type_bool")){
-
+				var bool=typeDiv.find("input[type=radio]:checked").val();
+				if(!(bool=="false" || bool=="true")){
+					error_message.show();
+				}
 			}else if(typeDiv.hasClass("type_num_menu")){
 				var menu=typeDiv.find("select[name=menu]").val();
 				var condition=typeDiv.find("input[name=condition]").val();
@@ -524,7 +529,12 @@ $(function(){
 						data.condition="!IN"+condition;
 					}
 				}else if(typeDiv.hasClass("type_bool")){
-
+					var bool=typeDiv.find("input[type=radio]:checked").val();
+					if(bool=="true"){
+						data.condition="true";
+					}else{
+						data.condition="false";
+					}
 				}else if(typeDiv.hasClass("type_num_menu")){
 					var menu=typeDiv.find("select[name=menu]").val();
 					var condition=typeDiv.find("input[name=condition]").val();
