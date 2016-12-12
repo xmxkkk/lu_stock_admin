@@ -139,8 +139,8 @@
 								</eq>
 								<eq name="vo['type']" value="bool">
 								<div class="type type_bool">
-									<input type="radio" name="bool{$k}" value="true" <eq name="vo['bool']" value="true"> checked</eq>>是
-									<input type="radio" name="bool{$k}" value="false" <eq name="vo['bool']" value="false"> checked</eq>>否 
+									<input type="radio" name="bool{$k}" value="true" <eq name="vo['condition']" value="true"> checked</eq>>是
+									<input type="radio" name="bool{$k}" value="false" <eq name="vo['condition']" value="false"> checked</eq>>否 
 								</div>
 								</eq>
 								<eq name="vo['type']" value="num_menu">
@@ -525,15 +525,19 @@ $(function(){
 					var condition=typeDiv.find("input[name=condition]").val();
 					if(bool=="true"){
 						data.condition="IN"+condition;
-					}else{
+					}else if(bool=="false"){
 						data.condition="!IN"+condition;
+					}else{
+						data.condition="";
 					}
 				}else if(typeDiv.hasClass("type_bool")){
 					var bool=typeDiv.find("input[type=radio]:checked").val();
 					if(bool=="true"){
 						data.condition="true";
-					}else{
+					}else if(bool=="false"){
 						data.condition="false";
+					}else{
+						data.condition="";
 					}
 				}else if(typeDiv.hasClass("type_num_menu")){
 					var menu=typeDiv.find("select[name=menu]").val();
@@ -645,7 +649,7 @@ $(function(){
 						location.href=data.url;
 					}else{
 						$('#top-alert').find('button').click();
-						$(that).removeClass('disabled').prop('disabled',false);
+//						$(that).removeClass('disabled').prop('disabled',false);
 					}
 				},1500);
 			}
@@ -657,7 +661,7 @@ $(function(){
 					location.href=data.url;
 				}else{
 					$('#top-alert').find('button').click();
-					$(that).removeClass('disabled').prop('disabled',false);
+//					$(that).removeClass('disabled').prop('disabled',false);
 				}
 			},1500);
 		}
@@ -734,6 +738,7 @@ $(function(){
 		});
 	});
 	$("#run_filter").click(function(){
+
 		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 		var id=$("input[name=id]").val();
 		var run_filter_url=$("input[name=run_filter_url]").val();
@@ -759,6 +764,7 @@ $(function(){
 	});
 
 	$("#test_filter").click(function(){
+
 		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 		var run_filter_url=$("input[name=run_filter_url]").val();
 		var filters=$("input[name=filters]").val();

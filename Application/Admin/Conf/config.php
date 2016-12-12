@@ -102,4 +102,8 @@ return array(
     'TMPL_EXCEPTION_FILE'   =>  MODULE_PATH.'View/Public/exception.html',// 异常页面的模板文件
 
     'SHOW_ERROR_MSG'        =>  true,
+
+    'LOG_TYPE'              =>  'File',
+    'LOG_RECORD' => true, // 开启日志记录
+    'LOG_LEVEL'  =>'EMERG,ALERT,CRIT,ERR,WARN,INFO,DEBUG'
 );

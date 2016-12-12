@@ -113,6 +113,8 @@ class LuStrategyController extends AdminController {
     }
 
     public function update(){
+        \Think\Log::write(json_encode(I()),'INFO');
+
         $id=I('post.id');
         $filters=I('post.filters');
         $title=I('post.title');
@@ -136,6 +138,12 @@ class LuStrategyController extends AdminController {
             $this->error("过滤器不足");
         }
 
+        $result=$this->checkCondition($arr);
+        if($result['code']!=0){
+            $this->error($result['message']);
+            return;
+        }
+        
         if($status==1 && $id>0){
             $cnt=D("LuStrategyStock")->where(array('id'=>$id))->count();
             if($cnt==0){
@@ -158,6 +166,7 @@ class LuStrategyController extends AdminController {
 
         D('LuStrategyFilter')->where(array('id'=>$id))->delete();
 
+
         for($i=0;$i<count($arr);$i++){
             $filter=$arr[$i]->filter;
             $condition=$arr[$i]->condition;
@@ -176,9 +185,48 @@ class LuStrategyController extends AdminController {
             $result['url']    =   U('index');
         }
         $result['id']     =   $id;
+
+        \Think\Log::write(json_encode($result),'INFO');
         $this->ajaxReturn($result);
     }
+    private function checkCondition($filters){
+        $result=array();
+
+        $methods=array('num'=>'isExpresstion','text'=>'isText','num_menu'=>'isNumMenu','bool'=>'isBool','str'=>'isStr','num_day1'=>'isNumDay1','num_day2'=>'isNumDay2');
+        for($i=0;$i<count($filters);$i++){
+            $filter=$filters[$i]->filter;
+            $condition=$filters[$i]->condition;
+
+            $stockfilter=D('LuStrategyStockfilter')->where(array('name'=>$filter))->find();
+            if(empty($stockfilter)){
+                $result['code']=1;
+                $result['message']="不存在";
+                break;
+            }
+
+            $type=$stockfilter['type'];
+            
+            if(array_key_exists($type, $methods)){
+                if(!call_user_func_array(array($this, $methods[$type]), array($condition))){
+                    $result['code']=2;
+                    $result['message']="格式不正确";
+                    return $result;
+                }
+            }else{
+                $result['code']=3;
+                $result['message']="不存在类型";
+                return $result;
+            }
+
+        }
+        $result['code']=0;
+        $result['message']="正确";
+        return $result;
+    }
+    
     public function run_filter(){
+        \Think\Log::write(json_encode(I()),'INFO');
+
         $result=array();
 
         $id=I('post.id');
@@ -191,10 +239,16 @@ class LuStrategyController extends AdminController {
             $result['test']=1;
         }else{
             $filters=M("LuStrategyFilter")->where(array("id"=>$id))->select();
-             $result['test']=0;
+            $result['test']=0;
         }
         if(count($filters)==0){
             $this->error("过滤器不足");
+        }
+
+        $result=$this->checkCondition($filters);
+        if($result['code']!=0){
+            $this->error($result['message']);
+            return;
         }
 
         $filters=json_encode($filters);
@@ -243,7 +297,10 @@ class LuStrategyController extends AdminController {
     }
     public function del($id=0){
         D("LuStrategy")->where(array("id"=>$id))->delete();
+        D("LuStrategyFilter")->where(array("id"=>$id))->delete();
         D("LuStrategyStock")->where(array("id"=>$id))->delete();
+
+        action_log('lustrategy', 'del', $id, UID);
         
         $this->success('删除成功');
     }
@@ -258,5 +315,104 @@ class LuStrategyController extends AdminController {
         
         $this->meta_title = '行业信息';
         $this->display();
+    }
+
+
+    private function isNumDay2($express){
+        $temp=explode(",",$express);
+        if(count($temp)!=3){
+            return false;
+        }
+        if(strlen($temp[0])==0 ||strlen($temp[1])==0 || strlen($temp[2])==0){
+            return false;
+        }
+        if(!is_numeric($temp[0]) || !is_numeric($temp[1]) || !$this->isExpresstion($temp[2])){
+            return false;
+        }
+
+        return true;
+    }
+    private function isNumDay1($express){
+        $temp=explode(",",$express);
+        if(count($temp)!=2){
+            return false;
+        }
+        if(strlen($temp[0])==0 || strlen($temp[1])==0){
+            return false;
+        }
+        if(!is_numeric($temp[0]) || !$this->isExpresstion($temp[1])){
+            return false;
+        }
+
+        return true;
+    }
+    private function isBool($express){
+        if(empty($express)){
+            return false;
+        }
+        if(!in_array($express, array("true","false"))){
+            return false;
+        }
+        return true;
+    }
+    private function isNumMenu($express){
+        $temp=explode(",", $express);
+        if(count($temp)!=2){
+            return false;
+        }
+        if(empty($temp[0]) || empty($temp[1])){
+            return false;
+        }
+        /*
+        if(!$this->isExpresstion($temp[1])){
+            return false;
+        }*/
+        return true;
+    }
+    private function isText($express){
+        if(empty($express)){
+            return false;
+        }
+        return true;
+    }
+    private function isStr($express){
+        if(!start_with($express,"IN") && !start_with($express,"!IN")){
+            return false;
+        }
+
+        $express=str_replace("!IN", "", $express);
+        $express=str_replace("IN", "", $express);
+        
+        if(empty($express)){
+            return false;
+        }
+        return true;
+    }
+    private function isExpresstion($express){
+        $subExpress=explode("||", $express);
+        for($i=0;$i<count($subExpress);$i++){
+            $tempSub=explode("&&", $subExpress[$i]);
+            for($j=0;$j<count($tempSub);$j++){
+                
+                $temp=str_replace("<=", "", $tempSub[$j]);
+                $temp=str_replace(">=", "", $temp);
+                $temp=str_replace("!=", "", $temp);
+                
+                $temp=str_replace(">", "", $temp);
+                $temp=str_replace("<", "", $temp);
+                $temp=str_replace("=", "", $temp);
+
+
+                if(0==strlen($temp)){
+                    return false;
+                }
+
+                if(!is_numeric($temp)){
+                    return false;
+                }
+            }
+        }
+
+        return true;   
     }
 }
