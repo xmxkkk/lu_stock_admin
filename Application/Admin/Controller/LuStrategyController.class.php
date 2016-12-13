@@ -238,11 +238,12 @@ class LuStrategyController extends AdminController {
             $filters=json_decode($filters);
             $result['test']=1;
         }else{
-            $filters=M("LuStrategyFilter")->where(array("id"=>$id))->select();
+            $filters=D("LuStrategyFilter")->where(array("id"=>$id))->select();
             $result['test']=0;
         }
         if(count($filters)==0){
             $this->error("过滤器不足");
+            return;
         }
 
         $result=$this->checkCondition($filters);

@@ -29,6 +29,7 @@
 					<th>ID</th>
 					<th>名字</th>
 					<th>描述</th>
+					<th>策略数</th>
 					<th>股票数</th>
 					<th>类型</th>
 					<th>运行状态</th>
@@ -45,6 +46,7 @@
 						<td>{$data.id}</td>
 						<td><a href="{:U('edit?id='.$data['id'])}">{$data.title}</a></td>
 						<td>{$data.attr}</td>
+						<td>{$data.filters|count}</td>
 						<td><font class="stocks_num">{$data.stock_num}</font></td>
 						<td>{$data.type_name}</td>
 						<td class="run_status">{$data.run_status_name}</td>
@@ -69,6 +71,42 @@
 <block name="script">
 <script type="text/javascript" src="__STATIC__/jquery.blockUI.js"></script>
 <script type="text/javascript">
+	var alertInfo=function(data){
+		$.unblockUI();
+		if (data.status==1) {
+			if (data.url) {
+				updateAlert(data.info + ' 页面即将自动跳转~','alert-success');
+				setTimeout(function(){
+					if (data.url) {
+						location.href=data.url;
+					}else {
+						location.reload();
+					}
+				},1500);
+			}else{
+				updateAlert(data.info ,'alert-success');
+					setTimeout(function(){
+					if (data.url) {
+						location.href=data.url;
+					}else{
+						$('#top-alert').find('button').click();
+//						$(that).removeClass('disabled').prop('disabled',false);
+					}
+				},1500);
+			}
+			
+		}else{
+			updateAlert(data.info,'alert-error');
+			setTimeout(function(){
+				if (data.url) {
+					location.href=data.url;
+				}else{
+					$('#top-alert').find('button').click();
+//					$(that).removeClass('disabled').prop('disabled',false);
+				}
+			},1500);
+		}
+	}
 	$(function(){
 		$(".run_class").each(function(){
 			$(this).click(function(e){
@@ -79,12 +117,11 @@
 				$.post(url,{id:id},function(data){
 					console.log(data);
 					$.unblockUI();
-		
-					if(data.status==1){
-						alert("过滤器不能为空");
+					if(data.status==0){
+						alertInfo(data);
 						return;
 					}
-		
+
 					obj.parent().parent().find(".stocks_num").text(data.stocks.length);
 					obj.parent().parent().find(".run_status").text("已运行");
 					$.unblockUI();
