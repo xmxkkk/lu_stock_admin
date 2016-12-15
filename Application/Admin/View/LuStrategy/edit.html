@@ -23,13 +23,13 @@
             <div class="form-item">
 				<label class="item-label">名字<span class="check-tips"></span></label>
 				<div class="controls">
-					<input type="text" class="text input-large" name='title' value="{$data['title']|default=''}"/>
+					<input type="text" class="text input-large" name='title' value="{$data['title']|default=''}" maxlength="20"/>
 				</div>
 			</div>
 			<div class="form-item">
 				<label class="item-label">描述<span class="check-tips"></span></label>
 				<div class="controls">
-					<textarea class="text input-large" style="height:70px;" name="attr">{$data['attr']|default=''}</textarea>
+					<textarea class="text input-large" style="height:70px;" name="attr" maxlength="60">{$data['attr']|default=''}</textarea>
 				</div>
 			</div>
 			<div class="form-item">
@@ -433,13 +433,17 @@ $(function(){
 
 		return false;
 	}
-	var isExpresstion=function(express){
+	var isNum=function(express){
 		if(!express)return false;
 		var subExpress=express.split("||");
         for(var i=0;i<subExpress.length;i++){
         	var tempSub=subExpress[i].split("&&");
         	for(var j=0;j<tempSub.length;j++){
-        		
+        		if(!(tempSub[j].startWith("<=") || tempSub[j].startWith(">=")||tempSub[j].startWith("!=")
+        			||tempSub[j].startWith(">")||tempSub[j].startWith("<")||tempSub[j].startWith("="))){
+        			return false;
+        		}
+
         		var temp=tempSub[j].replace("<=","");
         		temp=temp.replace(">=","");
         		temp=temp.replace("!=","");
@@ -503,7 +507,7 @@ $(function(){
         if(temp[0].length==0 || temp[1].length==0){
             return false;
         }
-        if(!isNumber(temp[0]) || !isExpresstion(temp[1])){
+        if(!isNumber(temp[0]) || !isNum(temp[1])){
             return false;
         }
 
@@ -518,7 +522,7 @@ $(function(){
         if(temp[0].length==0 ||temp[1].length==0 || temp[2].length==0){
             return false;
         }
-        if(!isNumber(temp[0]) || !isNumber(temp[1]) || !isExpresstion(temp[2])){
+        if(!isNumber(temp[0]) || !isNumber(temp[1]) || !isNum(temp[2])){
             return false;
         }
 
@@ -543,7 +547,7 @@ $(function(){
 
 			if(typeDiv.hasClass("type_num")){
 				var condition=fix(typeDiv.find("input[name=condition]"));//.val().trim();
-				if(!isExpresstion(condition)){
+				if(!isNum(condition)){
 					error_message.show();
 				}
 			}else if(typeDiv.hasClass("type_text")){
@@ -830,7 +834,7 @@ $(function(){
 		});
 	});
 	$("#run_filter").click(function(){
-
+		convert();
 		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 		var id=$("input[name=id]").val();
 		var run_filter_url=$("input[name=run_filter_url]").val();
@@ -856,6 +860,7 @@ $(function(){
 	});
 
 	$("#test_filter").click(function(){
+		convert();
 
 		$.blockUI({message:"等待运行结果......",css:{"height":'100px',"line-height":'100px',"font-size":'40px'}});
 		var run_filter_url=$("input[name=run_filter_url]").val();

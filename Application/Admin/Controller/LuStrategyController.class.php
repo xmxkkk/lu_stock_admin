@@ -133,6 +133,15 @@ class LuStrategyController extends AdminController {
             $this->error('图片不能为空');
         }
 
+        $title_len=mb_strlen($title,'utf-8');
+        if($title_len>15){
+            $this->error('名字不能超过15个字符');
+        }
+        $attr_len=mb_strlen($attr,'utf-8');
+        if($attr_len>60){
+            $this->error('描述不能超过60个字符');
+        }
+
         $arr=json_decode($filters);
         if(count($arr)<1){
             $this->error("过滤器不足");
@@ -192,7 +201,7 @@ class LuStrategyController extends AdminController {
     private function checkCondition($filters){
         $result=array();
 
-        $methods=array('num'=>'isExpresstion','text'=>'isText','num_menu'=>'isNumMenu','bool'=>'isBool','str'=>'isStr','num_day1'=>'isNumDay1','num_day2'=>'isNumDay2');
+        $methods=array('num'=>'isNum','text'=>'isText','num_menu'=>'isNumMenu','bool'=>'isBool','str'=>'isStr','num_day1'=>'isNumDay1','num_day2'=>'isNumDay2');
         for($i=0;$i<count($filters);$i++){
             $filter=$filters[$i]->filter;
             $condition=$filters[$i]->condition;
@@ -327,7 +336,7 @@ class LuStrategyController extends AdminController {
         if(strlen($temp[0])==0 ||strlen($temp[1])==0 || strlen($temp[2])==0){
             return false;
         }
-        if(!is_numeric($temp[0]) || !is_numeric($temp[1]) || !$this->isExpresstion($temp[2])){
+        if(!is_numeric($temp[0]) || !is_numeric($temp[1]) || !$this->isNum($temp[2])){
             return false;
         }
 
@@ -341,7 +350,7 @@ class LuStrategyController extends AdminController {
         if(strlen($temp[0])==0 || strlen($temp[1])==0){
             return false;
         }
-        if(!is_numeric($temp[0]) || !$this->isExpresstion($temp[1])){
+        if(!is_numeric($temp[0]) || !$this->isNum($temp[1])){
             return false;
         }
 
@@ -389,12 +398,16 @@ class LuStrategyController extends AdminController {
         }
         return true;
     }
-    private function isExpresstion($express){
+    private function isNum($express){
         $subExpress=explode("||", $express);
         for($i=0;$i<count($subExpress);$i++){
             $tempSub=explode("&&", $subExpress[$i]);
             for($j=0;$j<count($tempSub);$j++){
-                
+                if(!(start_with($express,"<=")||start_with($express,">=")||start_with($express,"!=")
+                    ||start_with($express,"<")||start_with($express,">")||start_with($express,"="))){
+                    return false;
+                }
+
                 $temp=str_replace("<=", "", $tempSub[$j]);
                 $temp=str_replace(">=", "", $temp);
                 $temp=str_replace("!=", "", $temp);
