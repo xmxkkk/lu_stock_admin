@@ -166,6 +166,17 @@
 									<input type="text" name="condition" value="{$vo['condition']}" class="text" style="width:70px;"/>
 								</div>
 								</eq>
+								<eq name="vo['type']" value="bool_menu">
+								<div class="type type_bool_menu">
+									<input type="radio" name="bool{$k}" value="true" <eq name="vo['bool']" value="true"> checked</eq>>是
+									<input type="radio" name="bool{$k}" value="false" <eq name="vo['bool']" value="false"> checked</eq>>否 
+									<select name="menu">
+										<volist name="vo['menus']" id='vomenu'>
+										<option value="{$vomenu['value']}" <eq name="vo['menu']" value="$vomenu.value">selected</eq>>{$vomenu['menu']}</option>
+										</volist>
+									</select>
+								</div>
+								</eq>
 							</div>
 							<div class="error_message" style="line-height:34px;display:none;">
 								<span style="color:red;font-size:18px;">(′⌒`)</span>
@@ -309,6 +320,12 @@
 				到<input type="text" name="day2" value="" class="text" style="width:30px;"/>天，
 				<input type="text" name="condition" value="" class="text" style="width:70px;"/>
 			</div>
+			<div class="type type_bool_menu">
+				<input type="radio" name="bool" value="true">是
+				<input type="radio" name="bool" value="false">否 
+				<select name="menu">
+				</select>
+			</div>
 		</div>
 		<div class="error_message" style="line-height:34px;display:none;">
 			<span style="color:red;font-size:18px;">(′⌒`)</span>
@@ -387,7 +404,7 @@ $(function(){
 				var type=getType(objx);
 				var menus;
 				var menuHtml="";
-				if(type=='num_menu'){
+				if(type=='num_menu' || type=='bool_menu'){
 					menus=filterMenus[objx.val()];
 					for(var i=0;i<menus.length;i++){
 						menuHtml+=("<option value='"+menus[i]['value']+"'>"+menus[i]['menu']+"</option>");
@@ -528,6 +545,14 @@ $(function(){
 
         return true;
     }
+    var isBoolMenu=function(express){
+    	if(!express)return false;
+        var temp=express.split(",");
+        if(temp[0]!="true" && temp[0]!="false"){
+        	return false;
+        }
+        return true;
+    }
     var fix=function(obj){
     	var val=obj.val()||"";
     	val=val.replace("！","!").replace(" ","").replace("，","");
@@ -596,6 +621,13 @@ $(function(){
 				if(!isNumDay2(condition)){
 					error_message.show();
 				}
+			}else if(typeDiv.hasClass("type_bool_menu")){
+				var bool=fix(typeDiv.find("input[type=radio]:checked"));
+				var menu=fix(typeDiv.find("select[name=menu]"));
+				condition=bool+","+menu;
+				if(!isBoolMenu(condition)){
+					error_message.show();
+				}
 			}
 		});
 		
@@ -648,6 +680,10 @@ $(function(){
 					var day2=fix(typeDiv.find("input[name=day2]"));//.val().trim();
 					var condition=fix(typeDiv.find("input[name=condition]"));//.val().trim();
 					data.condition=day1+","+day2+","+condition;
+				}else if(typeDiv.hasClass("type_bool_menu")){
+					var bool=fix(typeDiv.find("input[type=radio]:checked"));
+					var menu=fix(typeDiv.find("select[name=menu]"));
+					data.condition=bool+","+menu;
 				}
 				dataArray[dataArray.length]=data;
 			}

@@ -29,7 +29,7 @@ class LuStrategyController extends AdminController {
         $filterMenus=array();
 
         for($i=0;$i<count($stockFilters);$i++){
-            if($stockFilters[$i]['type']=='num_menu'){
+            if(in_array($stockFilters[$i]['type'],array('num_menu','bool_menu'))){
                 $filterMenus[$stockFilters[$i]['name']]=D('FilterMenu')->where(array('type'=>$stockFilters[$i]['name']))->order('ord')->select();
             }
         }
@@ -75,6 +75,11 @@ class LuStrategyController extends AdminController {
                 $data['filters'][$i]['day1']=$arr[0];
                 $data['filters'][$i]['day2']=$arr[1];
                 $data['filters'][$i]['condition']=$arr[2];
+            }else if($data['filters'][$i]['type']=='bool_menu'){
+                $arr=explode(",",$data['filters'][$i]['condition']);
+                $data['filters'][$i]['bool']=$arr[0];
+                $data['filters'][$i]['menu']=$arr[1];
+                $data['filters'][$i]['menus']=D('FilterMenu')->where(array('type'=>$stockFilter['name']))->order('ord')->select();
             }
         }
     }
@@ -201,7 +206,7 @@ class LuStrategyController extends AdminController {
     private function checkCondition($filters){
         $result=array();
 
-        $methods=array('num'=>'isNum','text'=>'isText','num_menu'=>'isNumMenu','bool'=>'isBool','str'=>'isStr','num_day1'=>'isNumDay1','num_day2'=>'isNumDay2');
+        $methods=array('num'=>'isNum','text'=>'isText','num_menu'=>'isNumMenu','bool'=>'isBool','str'=>'isStr','num_day1'=>'isNumDay1','num_day2'=>'isNumDay2','bool_menu'=>'isBoolMenu');
         for($i=0;$i<count($filters);$i++){
             $filter=$filters[$i]->filter;
             $condition=$filters[$i]->condition;
@@ -428,5 +433,15 @@ class LuStrategyController extends AdminController {
         }
 
         return true;   
+    }
+    private function isBoolMenu($express){
+        $temp=explode(",", $express);
+        if(count($temp)!=2){
+            return false;
+        }
+        if(!in_array($temp[0], array("true","false"))){
+            return false;
+        }
+        return true;
     }
 }
