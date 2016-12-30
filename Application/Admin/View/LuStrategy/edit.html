@@ -495,7 +495,7 @@ $(function(){
     var isText=function(express){
         return !!express;
     }
-    var isNumMenu=function(express){
+    var isNumMenu=function(express,filtername){
     	if(!express)return false;
     	var temp=express.split(",");
 
@@ -505,6 +505,12 @@ $(function(){
         if(temp[0].length==0 || temp[1].length==0){
             return false;
         }
+        if(filtername!='hangyeStockFilter'){
+        	if(!isNum(temp[1])){
+	            return false;
+	        }
+        }
+
         return true;
     }
     var isBool=function(express){
@@ -603,7 +609,7 @@ $(function(){
 				var menu=fix(typeDiv.find("select[name=menu]"));//.val().trim();
 				var condition=fix(typeDiv.find("input[name=condition]"));//.val().trim();
 				condition=menu+","+condition;
-				if(!isNumMenu(condition)){
+				if(!isNumMenu(condition,stock_filter_class)){
 					error_message.show();
 				}
 			}else if(typeDiv.hasClass("type_num_day1")){

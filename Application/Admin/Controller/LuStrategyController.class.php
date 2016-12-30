@@ -143,8 +143,8 @@ class LuStrategyController extends AdminController {
             $this->error('名字不能超过15个字符');
         }
         $attr_len=mb_strlen($attr,'utf-8');
-        if($attr_len>60){
-            $this->error('描述不能超过60个字符');
+        if($attr_len>1000){
+            $this->error('描述不能超过1000个字符');
         }
 
         $arr=json_decode($filters);
@@ -221,7 +221,11 @@ class LuStrategyController extends AdminController {
             $type=$stockfilter['type'];
             
             if(array_key_exists($type, $methods)){
-                if(!call_user_func_array(array($this, $methods[$type]), array($condition))){
+                $cb_condition= array($condition);
+                if($filter=='hangyeStockFilter'){
+                    $cb_condition[]=$filter;
+                }
+                if(!call_user_func_array(array($this, $methods[$type]),$cb_condition)){
                     $result['code']=2;
                     $result['message']="格式不正确";
                     return $result;
@@ -331,6 +335,11 @@ class LuStrategyController extends AdminController {
         $this->meta_title = '行业信息';
         $this->display();
     }
+    public function diyu(){
+        $suoshudiyus=D("StockCompanyInfo")->where('suoshudiyu<>""')->group('suoshudiyu')->select();
+        $this->assign('suoshudiyus',$suoshudiyus);
+        $this->display();
+    }
 
 
     private function isNumDay2($express){
@@ -370,7 +379,7 @@ class LuStrategyController extends AdminController {
         }
         return true;
     }
-    private function isNumMenu($express){
+    private function isNumMenu($express,$filtername){
         $temp=explode(",", $express);
         if(count($temp)!=2){
             return false;
@@ -382,6 +391,11 @@ class LuStrategyController extends AdminController {
         if(!$this->isExpresstion($temp[1])){
             return false;
         }*/
+        if($filtername!='hangyeStockFilter'){
+            if(!$this->isNum($temp[1])){
+                return false;
+            }
+        }
         return true;
     }
     private function isText($express){
