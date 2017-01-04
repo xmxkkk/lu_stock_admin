@@ -29,7 +29,7 @@
 			<div class="form-item">
 				<label class="item-label">描述<span class="check-tips"></span></label>
 				<div class="controls">
-					<textarea class="text input-large" style="height:70px;" name="attr" maxlength="60">{$data['attr']|default=''}</textarea>
+					<textarea class="text input-large" style="height:70px;" name="attr" maxlength="1000">{$data['attr']|default=''}</textarea>
 				</div>
 			</div>
 			<div class="form-item">
@@ -96,6 +96,18 @@
 	                    <option value="{$key}" <eq name="data['status']" value="$key">selected</eq>>{$vo}</option>
 	                </volist>
 	            </select>
+	        	</div>
+			</div>
+			<div class="form-item">
+				<label class="item-label">上次更新时间<span class="check-tips"></span></label>
+				<div class="controls">
+					<input type="text" class="text input-large date" style="width:150px;" name='modify_date' value="{$data['modify_date']|default=''}" maxlength="20"/>
+	        	</div>
+			</div>
+			<div class="form-item">
+				<label class="item-label">更新周期(天)<span class="check-tips"></span></label>
+				<div class="controls">
+					<input type="text" class="text input-large" style="width:150px;" name='interval_day' value="{$data['interval_day']|default='1'}" maxlength="20"/>
 	        	</div>
 			</div>
 			<table>
@@ -363,6 +375,20 @@ var isBlank=function(str){
 	return false;
 }
 
+$(function(){
+    $('.date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true
+    });
+    $('.time').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true
+    });
+});
 $(function(){
 	var str=$("input[name=filterMenus]").val();
 	var filterMenus= eval('(' + str + ')');
@@ -870,8 +896,10 @@ $(function(){
 		var type=$("select[name=type]").val();
 		var status=$("select[name=status]").val();
 		var action=$("input[name=action]").val();
+		var interval_day=$("input[name=interval_day]").val();
+		var modify_date=$("input[name=modify_date]").val();
 
-		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action},function(data){
+		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action,interval_day:interval_day,modify_date:modify_date},function(data){
 			alertInfo(data);
 		});
 	});
@@ -890,8 +918,10 @@ $(function(){
 		var type=$("select[name=type]").val();
 		var status=$("select[name=status]").val();
 		var action=$("input[name=action]").val();
+		var interval_day=$("input[name=interval_day]").val();
+		var modify_date=$("input[name=modify_date]").val();
 		
-		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action},function(data){
+		$.post(update_url,{id:id,filters:filters,title:title,attr:attr,img:img,type:type,status:status,action:action,interval_day:interval_day,modify_date:modify_date},function(data){
 			if(data.status==1){
 				$.post(run_filter_url,{id:data.id,action:action},runAction);
 			}else{

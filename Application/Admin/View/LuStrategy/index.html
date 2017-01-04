@@ -29,12 +29,14 @@
 					<th>ID</th>
 					<th>名字</th>
 					<th>描述</th>
-					<th>策略数</th>
-					<th>股票数</th>
-					<th>类型</th>
-					<th>运行状态</th>
-					<th>发布状态</th>
-					<th>操作</th>
+					<th style="width:50px;">策略数</th>
+					<th style="width:50px;">股票数</th>
+					<th style="width:50px;">类型</th>
+					<th style="width:70px;">运行状态</th>
+					<th style="width:70px;">发布状态</th>
+					<th style="width:50px;">置顶</th>
+					<th style="width:50px;">排序</th>
+					<th style="width:100px;">操作</th>
                 </tr>
             </thead>
 
@@ -51,6 +53,11 @@
 						<td>{$data.type_name}</td>
 						<td class="run_status">{$data.run_status_name}</td>
 						<td>{$data.status_name}</td>
+						<th><a class="ajax-get" href="{:U('is_top',array('id'=>$data['id']))}">{$data['is_top']?'是':'否'}</a></th>
+						<th>
+							<a class="ajax-get" href="{:U('ord',array('id'=>$data['id'],'type'=>'up'))}">▲</a>
+							<a class="ajax-get" href="{:U('ord',array('id'=>$data['id'],'type'=>'down'))}">▼</a>
+						</th>
 						<td>
 							<a title="编辑" href="{:U('edit?id='.$data['id'])}">编辑</a>
 							<a class="confirm ajax-get" title="删除" href="{:U('del?id='.$data['id'])}">删除</a>

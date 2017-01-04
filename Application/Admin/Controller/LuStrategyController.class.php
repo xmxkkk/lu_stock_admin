@@ -34,7 +34,6 @@ class LuStrategyController extends AdminController {
             }
         }
         $this->assign('filterMenus',$filterMenus);
-
     }
     private function combine(&$data){
         $data['type_name']=$this->types[$data['type']];
@@ -93,9 +92,15 @@ class LuStrategyController extends AdminController {
     /* 查询条件初始化 */
         $map = array();
         
-        $list = $this->lists(D('LuStrategy'), $map,'id');
+        $list = $this->lists(D('LuStrategy'), $map,'is_top desc,ord asc');
 
         $this->combines($list);
+
+        $temp=D('LuStrategy')->order('is_top desc,ord asc')->find();
+        for($i=0;$i<count($temp);$i++){
+            $id=$temp[$i]['id'];
+            D('LuStrategy')->where(array("id"=>$id))->save(array('ord'=>$i));
+        }
 
         $this->assign('list', $list);
         $this->meta_title = '管理';
@@ -127,6 +132,8 @@ class LuStrategyController extends AdminController {
         $img=I('post.img');
         $type=I('post.type');
         $status=I('post.status');
+        $modify_date=I('post.modify_date');
+        $interval_day=intval(I('post.interval_day'));
         
         if(empty($title)){
             $this->error('名字不能为空');
@@ -136,6 +143,12 @@ class LuStrategyController extends AdminController {
         }
         if(empty($img)){
             $this->error('图片不能为空');
+        }
+        if(empty($interval_day)){
+            $this->error('更新周期不能为空');
+        }
+        if(empty($modify_date)){
+            $this->error('上次更新时间不能为空');
         }
 
         $title_len=mb_strlen($title,'utf-8');
@@ -170,7 +183,9 @@ class LuStrategyController extends AdminController {
             'attr'=>$attr,
             'img'=>$img,
             'type'=>$type,
-            'status'=>$status
+            'status'=>$status,
+            'modify_date'=>$modify_date,
+            'interval_day'=>$interval_day
             );
         if(empty($id)){
             $id=D('LuStrategy')->data($data)->add();
@@ -282,18 +297,15 @@ class LuStrategyController extends AdminController {
 
         if(strtoupper(substr(PHP_OS,0,3))==='WIN'){
             //echo "java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"";
-            exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\"");
+            exec("java -jar D:\\workspace\\Venus\\target\\venus-0.0.1-SNAPSHOT.jar --command.lst.start=true --command.lst.id=".$id." --command.lst.json=\"".addslashes(json_encode($data))."\" --command.lst.force=true");
         }else{
             //echo "/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"";
-            exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\"");
+            exec("/home/app/venus/run.sh ".$id." \"".addslashes(json_encode($data))."\" true");
         }
 
         $stocks=D('LuStrategyStock')->where(array("id"=>$id,"status"=>1))->select();
 
         $changeRate=D("LuStrategyChangeRate")->where(array("id"=>$id))->find();
-
-        
-        
 
         $result['status']=1;
         $result['info']="运行成功";
@@ -340,8 +352,29 @@ class LuStrategyController extends AdminController {
         $this->assign('suoshudiyus',$suoshudiyus);
         $this->display();
     }
+    public function is_top(){
+        $id=I('get.id');
+        $m=D('LuStrategy')->where(array('id'=>$id))->find();
+        if(!empty($m)){
+            D('LuStrategy')->where(array('id'=>$id))->save(array('is_top'=>($m['is_top']==1?0:1)));
+        }
+        $this->success('更新成功');
+    }
+    public function ord($id=0,$type){
+        if(!in_array($type, array('up','down'))){
+            $this->error('更新失败');
+        }
+        $data=D('LuStrategy')->where(array('id'=>$id))->find();
 
-
+        if($type=='up'){
+            $data['ord']=$data['ord']-1.5;
+        }else if($type=='down'){
+            $data['ord']=$data['ord']+1.5;
+        }
+        $x=D('LuStrategy');
+        $x->where(array('id'=>$id))->save(array('ord'=>$data['ord']));
+        $this->success('更新成功');
+    }
     private function isNumDay2($express){
         $temp=explode(",",$express);
         if(count($temp)!=3){
