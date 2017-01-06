@@ -36,7 +36,7 @@
 					<th style="width:70px;">发布状态</th>
 					<th style="width:50px;">置顶</th>
 					<th style="width:50px;">排序</th>
-					<th style="width:100px;">操作</th>
+					<th style="width:130px;">操作</th>
                 </tr>
             </thead>
 
@@ -61,6 +61,7 @@
 						<td>
 							<a title="编辑" href="{:U('edit?id='.$data['id'])}">编辑</a>
 							<a class="confirm ajax-get" title="删除" href="{:U('del?id='.$data['id'])}">删除</a>
+							<a class="confirm ajax-get" title="清空" href="{:U('clear?id='.$data['id'])}">清空</a>
 							<a class="run_class" data-id="{$data['id']}" data-url="{:U('run_filter?id='.$data['id'])}" title="运行" href='#'>运行</a>
 						</td>
                     </tr>

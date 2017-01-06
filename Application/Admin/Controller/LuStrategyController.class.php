@@ -375,6 +375,12 @@ class LuStrategyController extends AdminController {
         $x->where(array('id'=>$id))->save(array('ord'=>$data['ord']));
         $this->success('更新成功');
     }
+    public function clear($id=0){
+        D('LuStrategyStock')->where(array('id'=>$id))->delete();
+        D('LuStrategyStockQuit')->where(array('id'=>$id))->delete();
+        D('LuStrategy')->where(array('id'=>$id))->save(array('total_change_rate'=>0.0,'up'=>0,'down'=>0,'flat'=>0));
+        $this->success('更新成功');
+    }
     private function isNumDay2($express){
         $temp=explode(",",$express);
         if(count($temp)!=3){
