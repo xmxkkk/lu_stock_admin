@@ -91,7 +91,7 @@ class LuStrategyController extends AdminController {
     public function index(){
     /* 查询条件初始化 */
         $map = array();
-        
+
         $list = $this->lists(D('LuStrategy'), $map,'is_top desc,ord asc');
 
         $this->combines($list);
@@ -134,7 +134,7 @@ class LuStrategyController extends AdminController {
         $status=I('post.status');
         $modify_date=I('post.modify_date');
         $interval_day=intval(I('post.interval_day'));
-        
+
         if(empty($title)){
             $this->error('名字不能为空');
         }
@@ -170,14 +170,14 @@ class LuStrategyController extends AdminController {
             $this->error($result['message']);
             return;
         }
-        
+
         if($status==1 && $id>0){
             $cnt=D("LuStrategyStock")->where(array('id'=>$id))->count();
             if($cnt==0){
                 $this->error("没有运行不能设置为发布状态");
             }
         }
-        
+
         $data=array(
             'title'=>$title,
             'attr'=>$attr,
@@ -234,7 +234,7 @@ class LuStrategyController extends AdminController {
             }
 
             $type=$stockfilter['type'];
-            
+
             if(array_key_exists($type, $methods)){
                 $cb_condition= array($condition);
                 if($filter=='hangyeStockFilter'){
@@ -256,7 +256,7 @@ class LuStrategyController extends AdminController {
         $result['message']="正确";
         return $result;
     }
-    
+
     public function run_filter(){
         \Think\Log::write(json_encode(I()),'INFO');
 
@@ -312,7 +312,7 @@ class LuStrategyController extends AdminController {
         if(I('post.action')=='add'){
             $result['url']    =   U('index');
         }
-        
+
         $result['md5']=$md5;
         $result['stocks']=$stocks;
         $result['changeRate']=$changeRate;
@@ -332,18 +332,18 @@ class LuStrategyController extends AdminController {
         D("LuStrategyStock")->where(array("id"=>$id))->delete();
 
         action_log('lustrategy', 'del', $id, UID);
-        
+
         $this->success('删除成功');
     }
     public function hangye(){
         $level1=D("StockCompanyHangye")->group('level1')->select();
         $level2=D("StockCompanyHangye")->group('level2')->select();
         $level3=D("StockCompanyHangye")->group('level3')->select();
-        
+
         $this->assign('level1',$level1);
         $this->assign('level2',$level2);
         $this->assign('level3',$level3);//print_r($level3);
-        
+
         $this->meta_title = '行业信息';
         $this->display();
     }
@@ -352,6 +352,19 @@ class LuStrategyController extends AdminController {
         $this->assign('suoshudiyus',$suoshudiyus);
         $this->display();
     }
+	public function close_page(){
+		if(IS_POST){
+			$value=intval(I('post.value'));
+			D("config")->where(array("name"=>"OPEN_PAGE"))->data(array("value"=>$value))->save();
+
+			$this->success('更新成功');
+		}else {
+			$config=D("config")->where(array("name"=>"OPEN_PAGE"))->find();
+			$this->assign("config",$config);
+			$this->display();
+		}
+	}
+
     public function is_top(){
         $id=I('get.id');
         $m=D('LuStrategy')->where(array('id'=>$id))->find();
@@ -450,7 +463,7 @@ class LuStrategyController extends AdminController {
 
         $express=str_replace("!IN", "", $express);
         $express=str_replace("IN", "", $express);
-        
+
         if(empty($express)){
             return false;
         }
@@ -469,7 +482,7 @@ class LuStrategyController extends AdminController {
                 $temp=str_replace("<=", "", $tempSub[$j]);
                 $temp=str_replace(">=", "", $temp);
                 $temp=str_replace("!=", "", $temp);
-                
+
                 $temp=str_replace(">", "", $temp);
                 $temp=str_replace("<", "", $temp);
                 $temp=str_replace("=", "", $temp);
@@ -485,7 +498,7 @@ class LuStrategyController extends AdminController {
             }
         }
 
-        return true;   
+        return true;
     }
     private function isBoolMenu($express){
         $temp=explode(",", $express);

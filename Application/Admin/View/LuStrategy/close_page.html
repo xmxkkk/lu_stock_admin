@@ -1,0 +1,41 @@
+<extend name="Public/base" />
+
+<block name="body">
+	<!-- 标签页导航 -->
+	<div class="tab-wrap">
+		<div class="tab-content">
+		<!-- 表单 -->
+		<form id="form" action="{:U('close_page')}" method="post" class="form-horizontal">
+			<!-- 基础文档模型 -->
+	        <div id="tab">
+	            <div class="form-item">
+					<label class="item-label">开启页面<span class="check-tips"></span></label>
+					<div class="controls">
+						<label class="radio">
+						<input type="radio" value="1" name="value" <eq name="config['value']" value="1">checked="checked"</eq>>开启
+						<input type="radio" value="0" name="value" <eq name="config['value']" value="0">checked="checked"</eq>>关闭
+						</label>
+					</div>
+	        	</div>
+
+				<div class="form-item cf">
+					<button class="btn submit-btn" id="submit" target-form="form-horizontal">保存</button>
+					<a class="btn btn-return" href="{$Think.cookie.__forward__}">返 回</a>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+</block>
+
+<block name="script">
+<link href="__STATIC__/datetimepicker/css/datetimepicker.css" rel="stylesheet" type="text/css">
+<php>if(C('COLOR_STYLE')=='blue_color') echo '<link href="__STATIC__/datetimepicker/css/datetimepicker_blue.css" rel="stylesheet" type="text/css">';</php>
+<link href="__STATIC__/datetimepicker/css/dropdown.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="__STATIC__/datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="__STATIC__/datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+<script type="text/javascript" src="__STATIC__/jquery.blockUI.js"></script>
+<script type="text/javascript">
+
+</script>
+</block>

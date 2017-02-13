@@ -31,8 +31,11 @@ class DataController extends HomeController {
 			$result=$luStrategys;
 		}else if($id==2){
 			$luStrategyStocks=D("Admin/LuStrategyStock")->where("status=1 and id>=0")->select();
-			
+
 			$result=$luStrategyStocks;
+		}else if($id==3){
+			$config=D("Admin/config")->where("name='OPEN_PAGE'")->find();
+			$result=$config;
 		}
 		$this->ajaxReturn($result);
 	}
