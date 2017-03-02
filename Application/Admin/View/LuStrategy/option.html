@@ -5,19 +5,24 @@
 	<div class="tab-wrap">
 		<div class="tab-content">
 		<!-- 表单 -->
-		<form id="form" action="{:U('close_page')}" method="post" class="form-horizontal">
+		<form id="form" action="{:U('option')}" method="post" class="form-horizontal">
 			<!-- 基础文档模型 -->
 	        <div id="tab">
 	            <div class="form-item">
 					<label class="item-label">开启页面<span class="check-tips"></span></label>
 					<div class="controls">
 						<label class="radio">
-						<input type="radio" value="1" name="value" <eq name="config['value']" value="1">checked="checked"</eq>>开启
-						<input type="radio" value="0" name="value" <eq name="config['value']" value="0">checked="checked"</eq>>关闭
+						<input type="radio" value="1" name="value" <eq name="config['OPEN_PAGE']['value']" value="1">checked="checked"</eq>>开启
+						<input type="radio" value="0" name="value" <eq name="config['OPEN_PAGE']['value']" value="0">checked="checked"</eq>>关闭
 						</label>
 					</div>
 	        	</div>
-
+	        	<div class="form-item">
+					<label class="item-label">通知邮件<span class="check-tips">多个邮箱，由英文逗号隔开</span></label>
+					<div class="controls">
+						<input type="text" class="text input-large" name='mails' value="{$config['ALERT_ADDRESS']['value']|default=''}"/>
+					</div>
+				</div>
 				<div class="form-item cf">
 					<button class="btn submit-btn" id="submit" target-form="form-horizontal">保存</button>
 					<a class="btn btn-return" href="{$Think.cookie.__forward__}">返 回</a>

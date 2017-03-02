@@ -352,14 +352,21 @@ class LuStrategyController extends AdminController {
         $this->assign('suoshudiyus',$suoshudiyus);
         $this->display();
     }
-	public function close_page(){
+	public function option(){
 		if(IS_POST){
 			$value=intval(I('post.value'));
 			D("config")->where(array("name"=>"OPEN_PAGE"))->data(array("value"=>$value))->save();
 
+            $mails=I('post.mails');
+            D("config")->where(array("name"=>"ALERT_ADDRESS"))->data(array("value"=>$mails))->save();
+            
 			$this->success('更新成功');
 		}else {
-			$config=D("config")->where(array("name"=>"OPEN_PAGE"))->find();
+			$OPEN_PAGE=D("config")->where(array("name"=>"OPEN_PAGE"))->find();
+            $ALERT_ADDRESS=D("config")->where(array("name"=>"ALERT_ADDRESS"))->find();
+            
+            $config=array('OPEN_PAGE'=>$OPEN_PAGE,'ALERT_ADDRESS'=>$ALERT_ADDRESS);
+
 			$this->assign("config",$config);
 			$this->display();
 		}
